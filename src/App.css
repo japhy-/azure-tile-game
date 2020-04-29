@@ -1,38 +1,147 @@
+* {
+  box-sizing: border-box;
+}
+
 .App {
-  text-align: center;
+  display: flex;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.Board {
+  display: flex;
+  flex-grow: 1;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.CurrentPlayer {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  flex-grow: 1;
+}
+
+.OtherPlayers {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  zoom: 75%;
+}
+
+.Factory {
+  display: flex;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  flex-direction: column;
 }
 
-.App-link {
-  color: #61dafb;
+.FactoryFloors {
+  display: flex;
+  justify-content: center;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.FactoryFloor {
+  display: flex;
+  border: 1px solid black;
+  margin: 8px;
+  border-radius: 50%;
+}
+
+.FactoryFloor > .Tiles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+}
+
+.RemainingTiles,
+.DiscardedTiles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  zoom: 50%;
+}
+
+.SlotTile {
+  border-color: tan;
+  border-style: ridge;
+}
+
+.PenaltyTile {
+  display: flex;
+  justify-content: center;
+  background-color: white;
+  border-color: cyan;
+  border-style: outset;
+}
+
+.PenaltyTile > SPAN {
+  align-self: center;
+  font-weight: bold;
+  font-size: 125%;
+}
+
+.Player {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.Hand {
+  display: flex;
+}
+
+.Hand > B {
+  align-self: center;
+}
+
+.Hand > DIV {
+  display: flex;
+}
+
+.Workshop {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.Workshop > DIV {
+  display: flex;
+  justify-content: center;
+}
+
+.Table, .Wall, .Arrows {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.Table > B, .Wall > B, .Arrows > B {
+  align-self: center;
+}
+
+.FloorScoreWrapper {
+  border-top: 1px solid silver;
+  display: flex;
+  justify-content: center;
+}
+
+.PlayerFloor {
+  display: flex;
+}
+
+.PlayerFloor > B {
+  align-self: center;
+}
+
+.PlayerFloorTiles {
+  display: flex;
+}
+
+.Score {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.Score > B {
+  align-self: center;
+}
+
+.ScoreValue {
+  align-self: center;
 }

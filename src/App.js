@@ -1,26 +1,59 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect, createContext } from 'react'
+import Board from './Components/Board'
+import { initializeTiles, TILE_COLORS } from './Components/Tile'
+import { initializePlayers } from './Components/Player'
 
-function App() {
+import './App.css'
+
+const GameContext = createContext()
+
+const App = () => {
+  const [ gameReady, setGameReady ] = useState(false)
+  const [ players, setPlayers ] = useState([])
+  const [ activePlayer, setActivePlayer ] = useState()
+  const [ tiles, setTiles ] = useState([])
+  const [ discardedTiles, setDiscardedTiles ] = useState([])
+  const [ floors, setFloors ] = useState([])
+  const [ action, setAction ] = useState(null)
+
+  const startGame = () => {
+    setTiles(initializeTiles({colors: TILE_COLORS, perColor: 10}))
+    setDiscardedTiles([])
+    setPlayers(initializePlayers(2))
+    setAction('draw')
+    setActivePlayer(0)
+  }
+
+  useEffect(() => {
+    if (! gameReady && players.length) {
+      setFloors(initializeFloors(players.length))
+      setGameReady(true)
+    }
+  }, [gameReady, players.length])
+  
+  useEffect(() => {
+    startGame()
+  }, [])
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      {gameReady && <Board {...{
+        tiles, setTiles,
+        discardedTiles, setDiscardedTiles,
+        floors, setFloors,
+        players, setPlayers,
+        activePlayer, setActivePlayer,
+        action, setAction
+      }} />}
     </div>
-  );
+  )
 }
 
-export default App;
+
+const initializeFloors = (nplayers) => {
+  const floors = []
+  for (let i = 0; i < nplayers * 2 - 1; i++) floors.push({id: i, tiles: []})
+  return floors
+}
+
+export default App
