@@ -9,56 +9,71 @@ const TILE_COLORS = {
 }
 const TILE_ORDER = Object.keys(TILE_COLORS)
 const TILE_POSITIONS = Object.fromEntries(TILE_ORDER.map((c, i) => [c, i]))
+const TILE_PENALTIES = [-1, -1, -2, -2, -2, -3, -3]
 const TILE_SIZE = 36
 const TILE_BORDER = 3
 const TILE_MARGIN = 4
 
-const Tile = ({color, onClick=null}) => {
+const Tile = ({color, round, onClick=null, onMouseOver=null, onMouseOut=null}) => {
   return (
     <div className="Tile" style={{
+      order: TILE_POSITIONS[color],
       backgroundColor: color,
-      width: `${TILE_SIZE}px`,
-      height: `${TILE_SIZE}px`,
-      border: `${TILE_BORDER}px ${TILE_COLORS[color]} outset`,
-      margin: `${TILE_MARGIN}px`,
-      // cursor: onClick ? 'grabbing' : 'not-allowed',
-    }} {...{onClick}} />
+      borderColor: TILE_COLORS[color],
+    }} {...{onClick, onMouseOver, onMouseOut}}>
+      {round || ""}
+    </div>
+  )
+}
+
+const TileStyles = () => {
+  return (
+    <style type="text/css">{`
+      .Tile {
+        width: ${TILE_SIZE}px;
+        height: ${TILE_SIZE}px;
+        border-width: ${TILE_BORDER}px;
+        margin: ${TILE_MARGIN}px;
+      }
+
+      .Showroom {
+        width: ${TILE_SIZE*3.5}px;
+        height: ${TILE_SIZE*3.5}px;
+      }
+
+      .Showroom > .Tiles {
+        width: ${TILE_SIZE*3}px;
+        height: ${TILE_SIZE*3}px;
+        padding-left: ${TILE_SIZE/2}px;
+        padding-top: ${TILE_SIZE/2}px;
+      }
+
+      .Hand {
+        height: ${TILE_SIZE}px;
+      }
+    `}</style>
   )
 }
 
 const PlaceholderTile = ({color}) => {
   return (
     <div className="Tile PlaceholderTile" style={{
-      opacity: 0.25,
       backgroundColor: color,
-      width: `${TILE_SIZE}px`,
-      height: `${TILE_SIZE}px`,
-      border: `${TILE_BORDER}px ${TILE_COLORS[color]} outset`,
-      margin: `${TILE_MARGIN}px`,
+      borderColor: TILE_COLORS[color],
     }} />
   )
 }
 
-const SlotTile = () => {
+const SlotTile = ({penalty}) => {
   return (
-    <div className="Tile SlotTile" style={{
-      width: `${TILE_SIZE}px`,
-      height: `${TILE_SIZE}px`,
-      borderWidth: `${TILE_BORDER}px`,
-      margin: `${TILE_MARGIN}px`,
-    }}/>
+    <div className="Tile SlotTile">{penalty}</div>
   )
 }
 
-const PenaltyTile = () => {
+const PenaltyTile = ({penalty=false}) => {
   return (
-    <div className="Tile PenaltyTile" style={{
-      width: `${TILE_SIZE}px`,
-      height: `${TILE_SIZE}px`,
-      borderColor: `${TILE_BORDER}px`,
-      margin: `${TILE_MARGIN}px`,
-    }}>
-      <span>1</span>
+    <div className="Tile PenaltyTile">
+      <span>{penalty && '-'}1</span>
     </div>
   )
 }
@@ -70,10 +85,10 @@ const initializeTiles = ({colors, perColor}) => {
     return acc
   }, [])
 
-  return shuffleFisherYates(tiles)
+  return shuffleTiles(tiles)
 }
 
-const shuffleFisherYates = (array) => {
+const shuffleTiles = (array) => {
   array = [...array]
   for (let i = array.length-1; i > 0; i--) {
     const j = Math.floor(Math.random() * i)
@@ -82,5 +97,44 @@ const shuffleFisherYates = (array) => {
   return array
 }
 
+const scoreTile = (wall, row, col) => {
+  const left = col > 0 && wall[row][col-1]
+  const right = col < 4 && wall[row][col+1]
+  const horiz = left || right
+
+  const up = row > 0 && wall[row-1][col]
+  const down = row < 4 && wall[row+1][col]
+  const vert = up || down
+
+  let cells = 0
+
+  if (horiz) {
+    for (let i = col; i < 5; i++) {
+      if (wall[row][i]) cells++
+      else break
+    }
+    for (let i = col-1; i >= 0; i--) {
+      if (wall[row][i]) cells++
+      else break
+    }
+  }
+  else if (vert) {
+    for (let i = row; i < 5; i++) {
+      if (wall[i][col]) cells++
+      else break
+    }
+    for (let i = row-1; i >= 0; i--) {
+      if (wall[i][col]) cells++
+      else break
+    }
+  }
+  else cells = 1
+
+  return cells
+}
+
 export default Tile
-export { initializeTiles, PlaceholderTile, PenaltyTile, SlotTile, TILE_BORDER, TILE_MARGIN, TILE_SIZE, TILE_COLORS, TILE_ORDER, TILE_POSITIONS }
+export {
+  TileStyles, PlaceholderTile, PenaltyTile, SlotTile, initializeTiles, shuffleTiles, scoreTile,
+  TILE_BORDER, TILE_MARGIN, TILE_SIZE, TILE_COLORS, TILE_ORDER, TILE_POSITIONS, TILE_PENALTIES,
+}

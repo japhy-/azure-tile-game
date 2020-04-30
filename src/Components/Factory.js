@@ -1,126 +1,87 @@
-import React, { useEffect, useState } from 'react'
-import FactoryFloor from './FactoryFloor'
+import React, { useEffect, useState, useContext } from 'react'
+import Showroom from './Showroom'
 import Surplus from './Surplus'
-import Tile from './Tile'
+import Tile, { shuffleTiles } from './Tile'
+import { GameContext } from '../App'
 
-const Factory = ({floors, setFloors, tiles, setTiles, discardedTiles, setDiscardedTiles, activePlayer, action, setAction, players, setPlayers, setRoundOver, populate, setPopulate}) => {
-  const [ factoryTiles, setFactoryTiles ] = useState([])
-  const [ surplusTiles, setSurplusTiles ] = useState([])
-  const [ penalty, setPenalty ] = useState(true)
-  const [ emptyFloors, setEmptyFloors ] = useState(0)
-
-  const drawTiles = () => {
-    setPopulate(false)
-
-    const tilesNeeded = 4 * floors.length - factoryTiles.length
-    const tilesAvailable = tiles.length
-
-    console.log(`${tilesNeeded} tiles needed for ${floors.length} floors, ${factoryTiles.length} tiles already distributed, ${tilesAvailable} tiles available`)
-
-    if (tilesNeeded <= tilesAvailable) {
-      console.log(`pulling ${tilesNeeded} tiles`)
-      setFactoryTiles([...factoryTiles, ...tiles.slice(0, tilesNeeded)])
-      setTiles(tiles.slice(tilesNeeded))
-    }
-    else {
-      console.log(`pulling ${tiles.length} tiles, reshuffling ${discardedTiles.length} tiles`)
-      setFactoryTiles([...tiles])
-      setTiles([...discardedTiles])
-      setDiscardedTiles([])
-      setPopulate(true)
-    }
-  }
-
-  const chooseTiles = (tiles) => {
-    players[activePlayer].hand = tiles
-    setPlayers([...players])
-  }
+const Factory = () => {
+  const { action, players, initialized, factory: { showrooms, surplus, distributing }, tiles, round } = useContext(GameContext)
 
   const distributeTiles = () => {
-    floors.forEach((f, i) => {
-      f.tiles = factoryTiles.slice(i*4, i*4+4).sort((a, b) => a.color.localeCompare(b.color))
+    distributing.set(false)
+    round.set(r => r+1)
+    const tilesNeeded = 4 * showrooms.get.length
+    
+    // console.log(`${tilesNeeded} tiles needed for ${showrooms.get.length} floors`)
+    const tilesToDistribute = tiles.bag.get.splice(0, tilesNeeded)
+
+    if (tilesToDistribute.length < tilesNeeded) {
+      // console.log(`distributed ${tilesToDistribute.length} tiles so far`)
+      // console.log(`shuffling ${tiles.discard.get.length} discard tiles into the bag`)
+      tiles.bag.get.push(...shuffleTiles(tiles.discard.get))
+      // console.log(`there are now ${tiles.bag.get.length} tiles in the bag`)
+      tiles.discard.set([])
+      tilesToDistribute.push(...tiles.bag.get.splice(0, tilesNeeded - tilesToDistribute.length))
+    }
+
+    tiles.bag.set([...tiles.bag.get])
+
+    showrooms.get.forEach((s, i) => {
+      s.tiles = tilesToDistribute.slice(i*4, i*4+4)
     })
-    setFactoryTiles([])
-  }
 
-  const takeSurplusTiles = (tile) => {
-    setAction('place')
-    const chosenTiles = []
-    const remainingTiles = []
-    surplusTiles.forEach(t => {
-      (t.color === tile.color ? chosenTiles : remainingTiles).push(t)
-    })
-    console.log(`you selected ${chosenTiles.length} ${tile.color} tile(s) from the surplus`)
-    console.log(`${remainingTiles.length} tiles remain in the surplus`)
-    if (penalty) {
-      takePenalty()
-    }
-    setSurplusTiles(remainingTiles)
-    chooseTiles(chosenTiles)
-  }
-
-  const takePenalty = () => {
-    players[activePlayer].floor.push({penalty: true})
-    setPenalty(false)
+    showrooms.set([...showrooms.get])
+    surplus.set({penalty: true, tiles: []})
+    action.set('draw')
   }
 
   useEffect(() => {
-    if (factoryTiles.length === 4 * floors.length) {
-      setEmptyFloors(0)
-      distributeTiles()
-    }
-  }, [factoryTiles, floors])
+    if (initialized.get) distributing.set(true)
+  }, [initialized.get]);
 
   useEffect(() => {
-    console.log(`populate = ${populate ? 'T' : 'F'}`)
-    if (populate) {
-      console.log('populating floors')
-      setPenalty(true)
-      drawTiles()
-    }
-  }, [populate])
-
-  useEffect(() => {
-    // console.log('setRoundOver?', action, emptyFloors, floors.length, surplusTiles.length, players[activePlayer].hand.length)
-    if (action === 'wait' && emptyFloors === floors.length && surplusTiles.length === 0 && players[activePlayer].hand.length === 0) {
-      setRoundOver(true)
-    }
-  }, [action, emptyFloors, surplusTiles, floors, players, activePlayer, setRoundOver]);
-
-  useEffect(() => {
-    setPopulate(true)
-  }, [])
-
+    if (distributing.get) distributeTiles()
+  }, [distributing.get])
+  
   return (
     <div className="Factory">
-      <div className="FactoryFloors">
-        {floors.map(f => 
-          <FactoryFloor key={`floor-${f.id}`} floor={f} setSurplusTiles={setSurplusTiles} chooseTiles={chooseTiles} action={action} setAction={setAction} setEmptyFloors={setEmptyFloors}/>
-        )}
+      <div className="Showrooms">
+        {showrooms.get.map(s => <Showroom key={`showroom-${s.id}`} showroom={s}/>)}
       </div>
-      <Surplus tiles={surplusTiles} takeSurplusTiles={takeSurplusTiles} penalty={penalty} action={action}/>
-      <RemainingTiles tiles={tiles}/>
-      <DiscardedTiles tiles={discardedTiles}/>
+      <Surplus/>
+      {false && (<div>
+        <div>Game Round {round.get}</div>
+        <div>Current Game State: {action.get}</div>
+        <div>Current Active Player: {players.active.get}</div>
+        <div>All Showrooms Empty: {showrooms.areEmpty ? 'Y' : 'N'}</div>
+        <div>Surplus Is Empty: {surplus.isEmpty ? 'Y' : 'N'}</div>
+        <RemainingTiles/>
+        <DiscardedTiles/>
+      </div>)}
     </div>
   )
 }
 
 
-const RemainingTiles = ({tiles}) => {
+const RemainingTiles = () => {
+  const { tiles: { bag } } = useContext(GameContext)
+
   return (
     <div className="RemainingTiles">
-      <b>RemainingTiles</b>
-      {tiles.map(t => <Tile key={`tile-${t.id}`} color={t.color}/> )}
+      <b>Remaining Tiles</b>
+      {bag.get.map(t => <Tile key={`tile-${t.id}`} color={t.color}/>)}
     </div>
   )
 }
 
 
-const DiscardedTiles = ({tiles}) => {
+const DiscardedTiles = () => {
+  const { tiles: { discard } } = useContext(GameContext)
+
   return (
     <div className="DiscardedTiles">
-      <b>DiscardedTiles</b>
-      {tiles.map(t => <Tile key={`tile-${t.id}`} color={t.color} /> )}
+      <b>Discarded Tiles</b>
+      {discard.get.map(t => <Tile key={`tile-${t.id}`} color={t.color}/>)}
     </div>
   )
 }
