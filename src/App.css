@@ -10,7 +10,7 @@ H2, H3 {
   margin-bottom: 0;
 }
 
-.Board {
+.Game {
   display: flex;
   flex-grow: 1;
 }
@@ -151,7 +151,22 @@ H2, H3 {
 }
 
 .PlaceholderTile {
-  opacity: 0.25;
+  opacity: 0.15;
+}
+
+.PlaceholderTile.Match {
+  border-color: black !important;
+  opacity: 0.33;
+}
+
+.PlaceholderTile.Pending {
+  border-color: black !important;
+  opacity: 0.45;
+}
+
+.PlaceholderTile.Completed {
+  border-color: black !important;
+  opacity: 0.75;
 }
 
 .FloorScoreWrapper {
