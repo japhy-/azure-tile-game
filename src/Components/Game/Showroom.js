@@ -1,13 +1,14 @@
 import React, { useContext } from 'react'
 import Tile from './Tile'
-import { GameContext } from '../App'
+import { GameContext } from '.'
 
 const Showroom = ({showroom}) => {
   const { action, players: { color, active: { chooseTiles} }, factory: { surplus, showrooms } } = useContext(GameContext)
 
   const selectTiles = (tile) => {
     action.set('place')
-
+    color.set(null); 
+    
     const chosen = []
     const rejected = []
 

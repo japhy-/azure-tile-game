@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import { GameContext } from '.'
 
 const TILE_COLORS = {
   blue: 'cyan',
@@ -14,14 +15,16 @@ const TILE_SIZE = 36
 const TILE_BORDER = 3
 const TILE_MARGIN = 4
 
-const Tile = ({color, round, onClick=null, onMouseOver=null, onMouseOut=null}) => {
+const Tile = ({color, score, round, onClick=null, onMouseOver=null, onMouseOut=null}) => {
+  const { action } = useContext(GameContext)
+
   return (
     <div className="Tile" style={{
       order: TILE_POSITIONS[color],
       backgroundColor: color,
       borderColor: TILE_COLORS[color],
     }} {...{onClick, onMouseOver, onMouseOut}}>
-      {round || ""}
+      {action.get === 'scoring' ? score : (round ? `${round}:${score}` : "")}
     </div>
   )
 }
@@ -55,12 +58,14 @@ const TileStyles = () => {
   )
 }
 
-const PlaceholderTile = ({color}) => {
+const PlaceholderTile = ({color, match, pending}) => {
   return (
-    <div className="Tile PlaceholderTile" style={{
+    <div className={`Tile PlaceholderTile ${match ? 'Match' : ''} ${pending ? ['', 'Pending', 'Completed'][pending] : ''}`} style={{
       backgroundColor: color,
       borderColor: TILE_COLORS[color],
-    }} />
+    }}>
+      {pending && (pending === 1 ? <>&#9744;</> : <>&#9745;</>)}
+    </div>
   )
 }
 
@@ -98,17 +103,17 @@ const shuffleTiles = (array) => {
 }
 
 const scoreTile = (wall, row, col) => {
-  const left = col > 0 && wall[row][col-1]
+  const left  = col > 0 && wall[row][col-1]
   const right = col < 4 && wall[row][col+1]
-  const horiz = left || right
 
-  const up = row > 0 && wall[row-1][col]
+  const up   = row > 0 && wall[row-1][col]
   const down = row < 4 && wall[row+1][col]
-  const vert = up || down
 
   let cells = 0
 
-  if (horiz) {
+  // console.log([row, col, left||right, up||down])
+
+  if (left || right) {
     for (let i = col; i < 5; i++) {
       if (wall[row][i]) cells++
       else break
@@ -118,7 +123,7 @@ const scoreTile = (wall, row, col) => {
       else break
     }
   }
-  else if (vert) {
+  if (up || down) {
     for (let i = row; i < 5; i++) {
       if (wall[i][col]) cells++
       else break
@@ -128,7 +133,7 @@ const scoreTile = (wall, row, col) => {
       else break
     }
   }
-  else cells = 1
+  if (!left && !right && !up && !down) cells = 1
 
   return cells
 }

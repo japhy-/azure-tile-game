@@ -1,6 +1,6 @@
 import React, { useState, useContext, createContext } from 'react'
 import Tile, { SlotTile, PenaltyTile, PlaceholderTile, TILE_ORDER, TILE_PENALTIES, TILE_SIZE, TILE_BORDER, TILE_MARGIN } from './Tile'
-import { GameContext } from '../App'
+import { GameContext } from '.'
 
 const PlayerContext = createContext()
 const ActivePlayerContext = createContext({})
@@ -39,9 +39,12 @@ const ActivePlayer = () => {
     }
     if (player.hand.length === 0) {
       setPlaced(null)
+      players.list.set([...players.list.get])
       action.set('turnEnd')
     }
-    players.list.set([...players.list.get])
+    else {
+      players.list.set([...players.list.get])
+    }
   }
 
   return (
@@ -66,12 +69,12 @@ const OtherPlayers = () => {
 }
 
 const ActionButton = () => {
-  const { action, players: { active } } = useContext(GameContext)
+  const { action } = useContext(GameContext)
 
   const buttons = {
     draw: { label: 'Draw Tiles' },
     place: { label: 'Place Tiles'},
-    turnEnd: { label: 'End Turn', onClick: active.nextPlayer },
+    turnEnd: { label: 'End Turn' },
     scoring: { label: '(Scoring)' },
   }
 
@@ -81,13 +84,17 @@ const ActionButton = () => {
 }
 
 const Hand = () => {
+  const { players: { color } } = useContext(GameContext)
   const { hand: tiles } = useContext(PlayerContext)
 
   return (
     <div className="Hand">
       <b>Hand:</b>
       <div>
-        {tiles.map(t => <Tile key={`tile-${t.id}`} color={t.color}/>)}
+        {tiles.map(t => <Tile key={`tile-${t.id}`} color={t.color}
+          onMouseOver={() => color.set(t.color)}
+          onMouseOut={() => color.set(null)}
+        />)}
       </div>
     </div>
   )
@@ -124,20 +131,20 @@ const TileTable = () => {
 }
 
 const TileTableRow = ({row, tiles}) => {
-  const acp = useContext(ActivePlayerContext)
+  const { action, players: { color } } = useContext(GameContext)
   const { playTile, placed } = useContext(ActivePlayerContext)
   const { wall, hand } = useContext(PlayerContext)
 
   const blanks = 4 - row
+
   const canPlaceTile =
-    playTile
-    && hand.length
+    ((action.get === 'draw' && color.get) || (hand.length > 0 && playTile))
     && (placed === null || placed === row)
-    && (tiles.length === 0 || (tiles[0].color === hand[0].color && tiles.length < row+1))
-    && wall[row].filter(t => t.color === hand[0].color).length === 0
+    && (tiles.length === 0 || (tiles[0].color === (action.get === 'draw' ? color.get : hand[0].color) && tiles.length < row+1))
+    && wall[row].filter(t => t && t.color === (action.get === 'draw' ? color.get : hand[0].color)).length === 0
 
   return (
-    <tr className={`TileTableRow ${canPlaceTile ? 'can-drop drop-highlight' : 'cannot-drop'}`} onClick={canPlaceTile ? () => playTile(row) : null}>
+    <tr className={`TileTableRow ${canPlaceTile ? 'can-drop' : 'cannot-drop'}`} onClick={canPlaceTile ? () => playTile(row) : null}>
       {[...Array(blanks).keys()].map(i => 
         <TileTableCell key={`tiletablecell-${row}-${i}`} blank/>
       )}
@@ -194,22 +201,30 @@ const WallRow = ({row, tiles}) => {
   return (
     <tr className="WallRow">
       {[...Array(5).keys()].map(i => 
-        <WallCell key={`wallcell-${row}-${i}`} tile={tiles[i] || {color: TILE_ORDER[(row+i)%5]}}/>
+        <WallCell key={`wallcell-${row}-${i}`} row={row} col={i} tile={tiles[i] || {color: TILE_ORDER[(row+i)%5]}}/>
       )}
     </tr>
   )
 }
 
-const WallCell = ({tile=null}) => {
+const WallCell = ({row, col, tile=null}) => {
+  const { players: { list, color } } = useContext(GameContext)
+  const { id: activeId } = useContext(ActivePlayerContext)
+  const { id } = useContext(PlayerContext)
+
+  const pending =
+    list.get[id].table[row].length > 0
+    && list.get[id].table[row][0].color === tile.color
+    && (list.get[id].table[row].length === row+1 ? 2 : 1)
+
   return (
     <td className="WallCell">
-      {tile.id > -1 ? <Tile color={tile.color} round={tile.round}/> : <PlaceholderTile color={tile.color}/>}
+      {tile.id > -1 ? <Tile score={tile.score} color={tile.color} round={tile.round}/> : <PlaceholderTile color={tile.color} pending={pending} match={id === activeId && color.get === tile.color}/>}
     </td>
   )
 }
 
 const PlayerFloor = () => {
-  const acp = useContext(ActivePlayerContext)
   const { playTile } = useContext(ActivePlayerContext)
   const { floor: tiles } = useContext(PlayerContext)
 
@@ -222,7 +237,7 @@ const PlayerFloor = () => {
       <div className="PlayerFloorTiles">
         {[...Array(7).keys()].map(i => tiles[i]).map((t={}, i) => t.penalty ?
           <PenaltyTile key={`tile-penalty`} penalty={true}/> :
-          (t.id ? <Tile key={`tile-${t.id}`} color={t.color} round={TILE_PENALTIES[i]}/> : <SlotTile key={`slot-${i}`} penalty={TILE_PENALTIES[i]} />)
+          (t.id ? <Tile key={`tile-${t.id}`} color={t.color} score={TILE_PENALTIES[i]} round={TILE_PENALTIES[i]}/> : <SlotTile key={`slot-${i}`} penalty={TILE_PENALTIES[i]} />)
         )}
       </div>
     </div>

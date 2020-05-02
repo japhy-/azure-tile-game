@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useContext } from 'react'
+import React, { useEffect, useContext } from 'react'
 import Showroom from './Showroom'
 import Surplus from './Surplus'
 import Tile, { shuffleTiles } from './Tile'
-import { GameContext } from '../App'
+import { GameContext } from '.'
 
 const Factory = () => {
   const { action, players, initialized, factory: { showrooms, surplus, distributing }, tiles, round } = useContext(GameContext)
@@ -37,10 +37,12 @@ const Factory = () => {
 
   useEffect(() => {
     if (initialized.get) distributing.set(true)
+  // eslint-disable-next-line
   }, [initialized.get]);
 
   useEffect(() => {
     if (distributing.get) distributeTiles()
+  // eslint-disable-next-line
   }, [distributing.get])
   
   return (
