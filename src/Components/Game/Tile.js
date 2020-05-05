@@ -24,7 +24,7 @@ const Tile = ({color, score, round, onClick=null, onMouseOver=null, onMouseOut=n
       backgroundColor: color,
       borderColor: TILE_COLORS[color],
     }} {...{onClick, onMouseOver, onMouseOut}}>
-      {action.get === 'scoring' ? score : (round ? `${round}:${score}` : "")}
+      {action.get === 'scoring' ? score : ""/*(round ? `${round}:${score}` : "")*/}
     </div>
   )
 }
@@ -110,32 +110,54 @@ const scoreTile = (wall, row, col) => {
   const down = row < 4 && wall[row+1][col]
 
   let cells = 0
+  const lines = []
 
   // console.log([row, col, left||right, up||down])
 
   if (left || right) {
+    let min = 0
+    let max = 4
     for (let i = col; i < 5; i++) {
-      if (wall[row][i]) cells++
+      if (wall[row][i]) {
+        cells++
+        min = i
+      }
       else break
     }
     for (let i = col-1; i >= 0; i--) {
-      if (wall[row][i]) cells++
+      if (wall[row][i]) {
+        cells++
+        max = i
+      }
       else break
     }
+    lines.push(['row', row, min, max])
   }
   if (up || down) {
+    let min = 0
+    let max = 4
     for (let i = row; i < 5; i++) {
-      if (wall[i][col]) cells++
+      if (wall[i][col]) {
+        cells++
+        min = i
+      }
       else break
     }
     for (let i = row-1; i >= 0; i--) {
-      if (wall[i][col]) cells++
+      if (wall[i][col]) {
+        cells++
+        max = i
+      }
       else break
     }
+    lines.push(['col', col, min, max])
   }
-  if (!left && !right && !up && !down) cells = 1
+  if (!left && !right && !up && !down) {
+    cells = 1
+    lines.push(['cell', row, col])
+  }
 
-  return cells
+  return { cells, lines }
 }
 
 export default Tile

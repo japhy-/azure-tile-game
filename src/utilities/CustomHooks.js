@@ -6,3 +6,8 @@ export const useInterceptState = (f, i, a=true) => {
   const [ v, s ] = useState(a ? f(i) : i)
   return [ v, (a) => s(f(typeof a === 'function' ? a(v) : a)) ]
 }
+
+export const useInputState = (i) => {
+  const [ v, s ] = useState(i)
+  return [ v, (ev) => s(typeof ev === 'object' ? ev.target.value : ev) ]
+}

@@ -1,14 +1,18 @@
 import React, { useState, createContext, useEffect, useContext, useRef } from 'react'
 import * as S from '../constants'
+import { UserPasswordCredential, FunctionCredential } from 'mongodb-stitch-browser-sdk';
 
 const { Stitch, RemoteMongoClient, AnonymousCredential } = require('mongodb-stitch-browser-sdk');
 
 const StitchContext = createContext({})
 
-const StitchWrapper = ({cluster=S.CLUSTER, database=S.DATABASE, collection=S.COLLECTION, accountsCollection=S.ACCOUNTS, children}) => {
-  const [ stitch, setStitch ] = useState({connected: false})
-  const [ loading, setLoading ] = useState(true)
+const StitchWrapper = ({cluster=S.CLUSTER, database=S.DATABASE, collection=S.COLLECTION, accountsCollection=S.ACCOUNTS, children, credentials=null}) => {
+  const [ stitch, setStitch ] = useState({})
+  const [ creds, setCredentials ] = useState(credentials)
+  const [ connecting, setConnecting ] = useState(false)
   const [ error, setError ] = useState(null)
+  const [ user, setUser ] = useState(null)
+  const [ anon, setAnon ] = useState(false)
 
   useEffect(() => {
     const client = Stitch.initializeDefaultAppClient(cluster);
@@ -17,26 +21,58 @@ const StitchWrapper = ({cluster=S.CLUSTER, database=S.DATABASE, collection=S.COL
     const game = db.collection(collection)
     const accounts = db.collection(accountsCollection)
 
-    client.auth.loginWithCredential(new AnonymousCredential()).then(user => {
-      setStitch({ client, root, db, game, accounts, user, connected: true })
-      setLoading(false)
-    }).catch(err => {
-      console.log('error', err)
-      setError(error)
-    })
-  // eslint-disable-next-line
+    setStitch(s => ({
+      client, root, db, game, accounts,
+      setCredentials,
+      logout: () => {
+        client.auth.logout().then(() => {
+          setUser(client.auth.user)
+        })
+      },
+    }))
+
+    // eslint-disable-next-line
   }, [])
 
-  if (error) return (
-    <div>Error connecting to the database!</div>
-  )
+  useEffect(() => {
+    const connect = async () => {
+      if (stitch.client.auth.isLoggedIn) {
+        await stitch.logout()
+      }
 
-  if (loading) return (
-    <div>Connecting to the database...</div>
-  )
-  
+      let via
+      
+      if (creds.type === 'anon') via = new AnonymousCredential()
+      else if (creds.type === 'email') via = new UserPasswordCredential(creds.email, creds.password)
+      else if (creds.type === 'function') via = new FunctionCredential(creds.payload)
+      else {
+        setConnecting(false)
+        setError({name: "AuthError", message: "invalid auth method"})
+        return
+      }
+
+      stitch.client.auth.loginWithCredential(via).then(user => {
+        // console.log('connected with', via)
+        setAnon(creds.type === 'anon')
+        setUser(stitch.client.auth.user)
+        setConnecting(false)
+      }).catch(err => {
+        // console.log('error', err)
+        setError(err)
+        setConnecting(false)
+      })
+    }
+
+    if (stitch.client && !connecting && creds) {
+      setConnecting(true)
+      setError(false)
+      connect()
+    }
+    // eslint-disable-next-line
+  }, [creds])
+
   return (
-    <StitchContext.Provider value={stitch}>
+    <StitchContext.Provider value={{...stitch, user, anon, connecting, error}}>
       {children}
     </StitchContext.Provider>
   )
@@ -61,7 +97,7 @@ const useStitchWatcher = ({database=null, collection, onNext=(ev) => console.log
 
   useEffect(() => {
     // connect watcher
-    (database === null ? stitch.db : stitch.root.db(database)).collection(collection)[compact ? 'watchCompact' : 'watch'](filter).then(w => {
+    stitch.user && stitch.user.isLoggedIn && (database === null ? stitch.db : stitch.root.db(database)).collection(collection)[compact ? 'watchCompact' : 'watch'](filter).then(w => {
       // console.log('opening watcher', w)
       w.onNext((ev) => onNext(ev, new Date ()))
       watcherRef.current = w

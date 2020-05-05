@@ -69,7 +69,7 @@ const Game = (playing) => {
           tile.round = round;
           p.wall[i][(TILE_POSITIONS[tile.color] - i + 5) % 5] = tile
           if (p.wall[i].filter(t => t).length === 5) gameOver = true
-          const cells = scoreTile(p.wall, i, (TILE_POSITIONS[tile.color] - i + 5) % 5)
+          const { cells, lines } = scoreTile(p.wall, i, (TILE_POSITIONS[tile.color] - i + 5) % 5)
           // console.log(`player ${p.id}: +${cells} from row ${i}`)
           tile.score = `+${cells}`
           p.score += cells
@@ -107,15 +107,15 @@ const Game = (playing) => {
         ;
         [...Array(5).keys()].forEach(i => {
           if (p.wall[i].filter(t => t).length === 5) {
-            // console.log(`player ${p.id}: row ${i} gives +2`)
+            console.log(`player ${p.id}: row ${i} gives +2`)
             bonus += 2
           }
           if (p.wall.filter(r => r[i]).length === 5) {
-            // console.log(`player ${p.id}: col ${i} gives +7`)
+            console.log(`player ${p.id}: col ${i} gives +7`)
             bonus += 7
           }
           if (allCells.filter(t => t.color === TILE_ORDER[i]).length === 5) {
-            // console.log(`player ${p.id}: color ${TILE_ORDER[i]} gives +10`)
+            console.log(`player ${p.id}: color ${TILE_ORDER[i]} gives +10`)
             bonus += 10
           }
         })
@@ -128,7 +128,7 @@ const Game = (playing) => {
       queue.push({key: `game-over`, pause: delay, event: () => {
         setPlayers([...players])
       }})
-      // console.log(`player #${winner} wins with ${players[winner].score}`)
+      console.log(`player #${winner} wins with ${players[winner].score}`)
     }
     else {
       queue.push({key: `start-next-round`, pause: delay, event: () => {

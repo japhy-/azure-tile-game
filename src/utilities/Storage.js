@@ -7,6 +7,8 @@ export const useStorage = (method) => {
   const storage = useRef(method === 'local' ? localStorage : sessionStorage)
   const [ data, setData ] = useInterceptState((d) => Object.fromEntries(Object.entries(d).map(([k,v]) => [k, JSON.parse(v)])), storage.current)
   return {
+    _data: data,
+    _raw: storage.current,
     get: (k) => data[k],
     set: (k, v) => { storage.current.setItem(k, JSON.stringify(v)); setData(storage.current) },
     remove: (k) => { storage.current.removeItem(k); setData(storage.current) },
