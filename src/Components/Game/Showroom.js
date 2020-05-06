@@ -39,11 +39,4 @@ const Showroom = ({showroom}) => {
   )
 }
 
-const initializeShowrooms = (nplayers) => {
-  const showrooms = []
-  for (let i = 0; i < nplayers * 2 + 1; i++) showrooms.push({id: i, tiles: []})
-  return showrooms
-}
-
 export default Showroom
-export { initializeShowrooms }

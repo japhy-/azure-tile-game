@@ -150,6 +150,12 @@ H2, H3 {
   text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;
 }
 
+.Wall .Tile.highlight {
+  border-color: magenta !important;
+  x-border-style: solid !important;
+  x-background-color: gray !important;
+}
+
 .PlaceholderTile {
   opacity: 0.15;
 }

@@ -3,6 +3,7 @@ import Showroom from './Showroom'
 import Surplus from './Surplus'
 import Tile, { shuffleTiles } from './Tile'
 import { GameContext } from '.'
+import { forN } from '../../utilities/Functions'
 
 const Factory = () => {
   const { action, players, initialized, factory: { showrooms, surplus, distributing }, tiles, round } = useContext(GameContext)
@@ -76,7 +77,6 @@ const RemainingTiles = () => {
   )
 }
 
-
 const DiscardedTiles = () => {
   const { tiles: { discard } } = useContext(GameContext)
 
@@ -88,5 +88,7 @@ const DiscardedTiles = () => {
   )
 }
 
+const initializeFactory = (nplayers) => forN(0, nplayers*3).map(id => ({id, tiles: []}))
 
 export default Factory
+export { initializeFactory }

@@ -1,6 +1,7 @@
 import React, { useState, useContext, createContext } from 'react'
 import Tile, { SlotTile, PenaltyTile, PlaceholderTile, TILE_ORDER, TILE_PENALTIES, TILE_SIZE, TILE_BORDER, TILE_MARGIN } from './Tile'
 import { GameContext } from '.'
+import { forN } from '../../utilities/Functions'
 
 const PlayerContext = createContext()
 const ActivePlayerContext = createContext({})
@@ -11,7 +12,7 @@ const Player = ({player}) => {
   return (
     <PlayerContext.Provider value={player}>
       <div className="Player">
-        <h2>Player {player.id} {active.get === player.id && <ActionButton/>}</h2>
+        <h2>Player {player.id}{active.get === player.id && (<>: <ActionButton/></>)}</h2>
         {active.get === player.id && <Hand/>}
         <Workshop/>
         <div className="FloorScoreWrapper">
@@ -75,11 +76,11 @@ const ActionButton = () => {
     draw: { label: 'Draw Tiles' },
     place: { label: 'Place Tiles'},
     turnEnd: { label: 'End Turn' },
-    scoring: { label: '(Scoring)' },
+    scoring: { label: 'Scoring' },
   }
 
   return action.get && (
-    <button onClick={buttons[action.get].onClick || null}>{buttons[action.get].label}</button>
+    <b>{buttons[action.get].label}</b>
   )
 }
 
@@ -121,7 +122,7 @@ const TileTable = () => {
       <b>Table</b>
       <table>
         <tbody>
-          {[...Array(5).keys()].map(i => 
+          {forN(5).map(i => 
             <TileTableRow key={`tiletablerow-${i}`} row={i} tiles={table[i]}/>
           )}
         </tbody>
@@ -145,10 +146,10 @@ const TileTableRow = ({row, tiles}) => {
 
   return (
     <tr className={`TileTableRow ${canPlaceTile ? 'can-drop' : 'cannot-drop'}`} onClick={canPlaceTile ? () => playTile(row) : null}>
-      {[...Array(blanks).keys()].map(i => 
+      {forN(blanks).map(i => 
         <TileTableCell key={`tiletablecell-${row}-${i}`} blank/>
       )}
-      {[...Array(row+1).keys()].map(i => 
+      {forN(row+1).map(i => 
         <TileTableCell key={`tiletablecell-${row}-${blanks+i}`} tile={tiles[i]}/>
       )}
     </tr>
@@ -169,7 +170,7 @@ const Arrows = () => {
       <br/>
       <table>
         <tbody>
-          {[...Array(5).keys()].map(i => 
+          {forN(5).map(i => 
             <tr style={{height: (TILE_SIZE + 2 * TILE_BORDER + TILE_MARGIN) + 'px'}} key={`arrows-${i}`}>
               <td>&#9654;</td>
             </tr>
@@ -188,7 +189,7 @@ const Wall = () => {
       <b>Wall</b>
       <table>
         <tbody>
-          {[...Array(5).keys()].map(i => 
+          {forN(5).map(i => 
             <WallRow key={`wallrow-${i}`} row={i} tiles={wall[i]} />
           )}
       </tbody>
@@ -200,7 +201,7 @@ const Wall = () => {
 const WallRow = ({row, tiles}) => {
   return (
     <tr className="WallRow">
-      {[...Array(5).keys()].map(i => 
+      {forN(5).map(i => 
         <WallCell key={`wallcell-${row}-${i}`} row={row} col={i} tile={tiles[i] || {color: TILE_ORDER[(row+i)%5]}}/>
       )}
     </tr>
@@ -219,7 +220,7 @@ const WallCell = ({row, col, tile=null}) => {
 
   return (
     <td className="WallCell">
-      {tile.id > -1 ? <Tile score={tile.score} color={tile.color} round={tile.round}/> : <PlaceholderTile color={tile.color} pending={pending} match={id === activeId && color.get === tile.color}/>}
+      {tile.id > -1 ? <Tile score={tile.score} highlight={tile.highlight} color={tile.color} round={tile.round}/> : <PlaceholderTile color={tile.color} pending={pending} match={id === activeId && color.get === tile.color}/>}
     </td>
   )
 }
@@ -235,7 +236,7 @@ const PlayerFloor = () => {
     <div className={`PlayerFloor ${canDropTile ? 'can-drop' : 'cannot-drop'}`} onClick={canDropTile ? () => playTile(-1) : null}>
       <b>Floor</b>
       <div className="PlayerFloorTiles">
-        {[...Array(7).keys()].map(i => tiles[i]).map((t={}, i) => t.penalty ?
+        {forN(7).map(i => tiles[i]).map((t={}, i) => t.penalty ?
           <PenaltyTile key={`tile-penalty`} penalty={true}/> :
           (t.id ? <Tile key={`tile-${t.id}`} color={t.color} score={TILE_PENALTIES[i]} round={TILE_PENALTIES[i]}/> : <SlotTile key={`slot-${i}`} penalty={TILE_PENALTIES[i]} />)
         )}

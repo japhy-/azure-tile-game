@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext, useRef } from 'react'
 import { useStitchWatcher, StitchContext } from '../../utilities/Stitch'
 import { StorageContext } from '../../utilities/Storage'
 import { useInputState } from '../../utilities/CustomHooks'
+import { forN } from '../../utilities/Functions'
 
 const Lobby = ({game}) => {
   const storage = useContext(StorageContext)
@@ -113,13 +114,13 @@ const LobbyProper = ({game}) => {
       </div>
       <div style={{display: 'flex', flexGrow: 1, flexDirection: 'column', alignItems: 'center'}}>
         <b>How many players?</b>
-        <div>{[...Array(3).keys()].map(i => (
+        <div>{forN(3).map(i => (
           <label key={`nplayers-${i}`}><input type="radio" name="nplayers" value={i+2} defaultChecked={i===0} onClick={(ev) => setNplayers(parseInt(ev.target.value))}/> {i+2}</label>
         ))}</div>
       </div>
       <div style={{display: 'flex', flexGrow: 1, flexDirection: 'column', alignItems: 'center'}}>
         <b>How many are playing from this computer?</b>
-        <div>{[...Array(nplayers).keys()].map(i => (
+        <div>{forN(nplayers).map(i => (
           <label key={`thiscomp-${nplayers}-${i}`}><input type="radio" name="thiscomp" value={i+1} defaultChecked={i+1 === (thiscomp <= nplayers ? thiscomp : nplayers)} onClick={(ev) => setThiscomp(parseInt(ev.target.value))}/> {i+1}</label>
         ))}</div>
       </div>
@@ -163,6 +164,7 @@ const Chat = ({channel}) => {
   // initial population of chat messages
   useEffect(() => {
     stitch.db.collection('messages').find({channel}, {sort: {ts:-1}, limit: 10}).toArray().then(r => r.reverse().forEach(msg => addEvent({fullDocument: msg}, msg.ts)))
+    // eslint-disable-next-line
   }, [])
   
   const { ready } = useStitchWatcher({collection: 'messages', onNext: addEvent})
@@ -220,9 +222,9 @@ const Chat = ({channel}) => {
 
 const GameList = ({game}) => {
   const stitch = useContext(StitchContext)
-  const storage = useContext(StorageContext)
+  // const storage = useContext(StorageContext)
 
-  const [ list, setList ] = useState([])
+  // const [ list, setList ] = useState([])
   const gameEvent = (event) => {
     // console.log(event)
   }
@@ -232,10 +234,11 @@ const GameList = ({game}) => {
     stitch.db.collection(game).find({}, {sort: {'state.id':1}}).toArray().then(r => r.forEach(event =>
       gameEvent(event)
     ))
+    // eslint-disable-next-line
   }, [])
 
   // listen for updates to games
-  const { ready } = useStitchWatcher({collection: 'messages', onNext: gameEvent})
+  // const { ready } = useStitchWatcher({collection: 'messages', onNext: gameEvent})
 
   return (
     <div className="GameList">
@@ -243,6 +246,17 @@ const GameList = ({game}) => {
     </div>
   )
 }
+
+
+const generateGameCode = () => {
+  const now = new Date ()
+  return [now.getSeconds(), (now.getHours()+1)*(now.getMinutes()+1), now.getMilliseconds(), now.getSeconds()+now.getMinutes()]
+    .map(i => String.fromCharCode(65 + i%26)).join("")
+}
+
+export default Lobby
+
+/*
 
 const AllDocuments = () => {
   const [ events, setEvents ] = useState([])
@@ -271,10 +285,4 @@ const AllDocuments = () => {
   )
 }
 
-const generateGameCode = () => {
-  const now = new Date ()
-  return [now.getSeconds(), (now.getHours()+1)*(now.getMinutes()+1), now.getMilliseconds(), now.getSeconds()+now.getMinutes()]
-    .map(i => String.fromCharCode(65 + i%26)).join("")
-}
-
-export default Lobby
+*/

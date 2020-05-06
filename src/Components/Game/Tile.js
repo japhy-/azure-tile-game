@@ -4,9 +4,9 @@ import { GameContext } from '.'
 const TILE_COLORS = {
   blue: 'cyan',
   black: 'silver',
-  purple: 'magenta',
+  brown: 'tan',
   green: 'lime',
-  yellow: 'orange',
+  orange: 'yellow',
 }
 const TILE_ORDER = Object.keys(TILE_COLORS)
 const TILE_POSITIONS = Object.fromEntries(TILE_ORDER.map((c, i) => [c, i]))
@@ -15,16 +15,16 @@ const TILE_SIZE = 36
 const TILE_BORDER = 3
 const TILE_MARGIN = 4
 
-const Tile = ({color, score, round, onClick=null, onMouseOver=null, onMouseOut=null}) => {
+const Tile = ({color, score, highlight=false, onClick=null, onMouseOver=null, onMouseOut=null}) => {
   const { action } = useContext(GameContext)
 
   return (
-    <div className="Tile" style={{
+    <div className={`Tile ${highlight ? 'highlight' : ''}`} style={{
       order: TILE_POSITIONS[color],
       backgroundColor: color,
       borderColor: TILE_COLORS[color],
     }} {...{onClick, onMouseOver, onMouseOut}}>
-      {action.get === 'scoring' ? score : ""/*(round ? `${round}:${score}` : "")*/}
+      {action.get === 'scoring' ? score : ""}
     </div>
   )
 }
@@ -59,12 +59,15 @@ const TileStyles = () => {
 }
 
 const PlaceholderTile = ({color, match, pending}) => {
+  const { action } = useContext(GameContext)
+  const classes = [match && 'Match', pending && ['', 'Pending','Completed'][pending]].filter(i => action.get !== 'scoring' && i)
+
   return (
-    <div className={`Tile PlaceholderTile ${match ? 'Match' : ''} ${pending ? ['', 'Pending', 'Completed'][pending] : ''}`} style={{
+    <div className={`Tile PlaceholderTile ${classes.join(" ")}`} style={{
       backgroundColor: color,
       borderColor: TILE_COLORS[color],
     }}>
-      {pending && (pending === 1 ? <>&#9744;</> : <>&#9745;</>)}
+      {action.get !== 'scoring' && pending && (pending === 1 ? <>&#9744;</> : <>&#9745;</>)}
     </div>
   )
 }
@@ -109,55 +112,49 @@ const scoreTile = (wall, row, col) => {
   const up   = row > 0 && wall[row-1][col]
   const down = row < 4 && wall[row+1][col]
 
-  let cells = 0
-  const lines = []
+  let score = 0
+  const cells = []
 
   // console.log([row, col, left||right, up||down])
 
   if (left || right) {
-    let min = 0
-    let max = 4
     for (let i = col; i < 5; i++) {
       if (wall[row][i]) {
-        cells++
-        min = i
+        score++
+        cells.push([row, i])
       }
       else break
     }
     for (let i = col-1; i >= 0; i--) {
       if (wall[row][i]) {
-        cells++
-        max = i
+        score++
+        cells.push([row, i])
       }
       else break
     }
-    lines.push(['row', row, min, max])
   }
   if (up || down) {
-    let min = 0
-    let max = 4
     for (let i = row; i < 5; i++) {
       if (wall[i][col]) {
-        cells++
-        min = i
+        score++
+        cells.push([i, col])
       }
       else break
     }
     for (let i = row-1; i >= 0; i--) {
       if (wall[i][col]) {
-        cells++
-        max = i
+        score++
+        cells.push([i, col])
       }
       else break
     }
-    lines.push(['col', col, min, max])
   }
   if (!left && !right && !up && !down) {
-    cells = 1
-    lines.push(['cell', row, col])
+    score = 1
+    cells.push([row, col])
   }
 
-  return { cells, lines }
+  return { score, cells }
 }
 
 export default Tile
