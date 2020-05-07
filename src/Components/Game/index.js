@@ -259,9 +259,9 @@ const Game = (playing) => {
 
   return initialized ? (
     <GameContext.Provider value={game}>
-      <div className={`Game ${action}`}>
+      <div className={`Game flex grow-1 ${action}`}>
         <TileStyles/>
-        <div className="CurrentPlayer">
+        <div className="CurrentPlayer flex columns grow-1">
           <Factory/>
           <ActivePlayer/>
         </div>
@@ -276,97 +276,3 @@ const Game = (playing) => {
 
 export default Game
 export { GameContext }
-
-/*
-
-  const scoreRound_viaActionQueue = () => {
-    const queue = []
-    const initialState = JSON.parse(JSON.stringify(players))
-    setActivePlayer(0)
-    setPlayers(initialState)
-
-    setAction('scoring')
-    let gameOver = false
-    const delay = 1000
-
-    players.forEach(p => {
-      p.table.forEach((row, i) => {
-        if (row.length === i+1) {
-          const tile = row[i]
-          row.forEach((t, n) => n !== i && discardedTiles.push(t))
-          tile.round = round;
-          p.wall[i][(TILE_POSITIONS[tile.color] - i + 5) % 5] = tile
-          if (p.wall[i].filter(t => t).length === 5) gameOver = true
-          const { cells, lines } = scoreTile(p.wall, i, (TILE_POSITIONS[tile.color] - i + 5) % 5)
-          // console.log(`player ${p.id}: +${cells} from row ${i}`)
-          tile.score = `+${cells}`
-          p.score += cells
-          p.table[i] = []
-
-          const state = JSON.parse(JSON.stringify(players))
-          queue.push({key: `player-${p.id}-wall-${i}`, pause: delay, event: () => setPlayers(state)})
-        }
-      })
-
-      p.floor.forEach((t, i) => {
-        p.score += TILE_PENALTIES[i] || 0
-        if (p.score < 0) p.score = 0
-
-        if (t.id) discardedTiles.push(t)
-        p.floor[i] = {}
-        const state = JSON.parse(JSON.stringify(players))
-        queue.push({key: `player-${p.id}-floor-${i}`, pause: delay, event: () => setPlayers(state)})
-      })
-      p.floor = []
-
-      // console.log(`player ${p.id}: penalty = ${penalty}`)
-
-      setDiscardedTiles([...discardedTiles])
-      if (p.id+1 < players.length) queue.push({key: `player-${p.id+1}-active`, pause: delay, event: () => setActivePlayer(p.id+1)})
-    })
-
-    if (gameOver) {
-      let winner = -1
-
-      // console.log("game over, calculating bonuses...")
-      players.forEach(p => {
-        let bonus = 0
-        const allCells = Array.prototype.concat(...p.wall)
-        ;
-        [...Array(5).keys()].forEach(i => {
-          if (p.wall[i].filter(t => t).length === 5) {
-            console.log(`player ${p.id}: row ${i} gives +2`)
-            bonus += 2
-          }
-          if (p.wall.filter(r => r[i]).length === 5) {
-            console.log(`player ${p.id}: col ${i} gives +7`)
-            bonus += 7
-          }
-          if (allCells.filter(t => t.color === TILE_ORDER[i]).length === 5) {
-            console.log(`player ${p.id}: color ${TILE_ORDER[i]} gives +10`)
-            bonus += 10
-          }
-        })
-
-        p.score += bonus
-        if (winner === -1 || p.score > players[winner].score) winner = p.id
-      })
-
-      players[winner].winner = true
-      queue.push({key: `game-over`, pause: delay, event: () => {
-        setPlayers([...players])
-      }})
-      console.log(`player #${winner} wins with ${players[winner].score}`)
-    }
-    else {
-      queue.push({key: `start-next-round`, pause: delay, event: () => {
-        setPlayers([...players])
-        setActivePlayer(nextRoundFirst)
-        setDistributing(true)
-      }})
-    }
-
-    addActions(queue)
-  }
-
-*/

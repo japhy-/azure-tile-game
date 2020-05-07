@@ -25,8 +25,8 @@ const Showroom = ({showroom}) => {
   }
 
   return (
-    <div className={`Showroom ${showroom.tiles.length === 0 ? 'empty' : ''}`}>
-      <div className="Tiles">
+    <div className={`Showroom flex ${showroom.tiles.length === 0 ? 'empty' : ''}`}>
+      <div className="Tiles flex wrap just-evenly">
         {showroom.tiles.map(t =>
           <Tile key={`tile-${t.id}`} color={t.color}
             onClick={action.get === 'draw' ? () => selectTiles(t) : null}

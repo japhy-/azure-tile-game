@@ -80,8 +80,8 @@ const SlotTile = ({penalty}) => {
 
 const PenaltyTile = ({penalty=false}) => {
   return (
-    <div className="Tile PenaltyTile">
-      <span>{penalty && '-'}1</span>
+    <div className="Tile PenaltyTile flex just-centered">
+      <span className="centered">{penalty && '-'}1</span>
     </div>
   )
 }

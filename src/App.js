@@ -13,7 +13,7 @@ const App = () => {
     <StitchWrapper>
       <ActionWrapper>
         <StorageWrapper method="local">
-          <div className="App">
+          <div className="App flex">
             {playing.code ? (
               <Game {...playing}/>
             ) : (

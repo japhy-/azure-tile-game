@@ -25,8 +25,8 @@ const Surplus = () => {
   }
 
   return (
-    <div className="Surplus">
-      <span>Surplus:</span>
+    <div className="Surplus flex just-centered">
+      <span className="centered">Surplus:</span>
       {surplus.get.penalty && <PenaltyTile/>}
       {surplus.get.tiles.map(t =>
         <Tile key={`tile-${t.id}`} color={t.color} onClick={action.get === 'draw' ? () => takeSurplusTiles(t) : null}

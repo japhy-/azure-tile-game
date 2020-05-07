@@ -47,8 +47,8 @@ const Factory = () => {
   }, [distributing.get])
   
   return (
-    <div className="Factory">
-      <div className="Showrooms">
+    <div className="Factory flex columns just-centered">
+      <div className="Showrooms flex just-centered">
         {showrooms.get.map(s => <Showroom key={`showroom-${s.id}`} showroom={s}/>)}
       </div>
       <Surplus/>
