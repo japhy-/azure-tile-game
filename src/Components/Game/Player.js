@@ -77,6 +77,7 @@ const ActionButton = () => {
     place: { label: 'Place Tiles'},
     turnEnd: { label: 'End Turn' },
     scoring: { label: 'Scoring' },
+    gameOver: { label: 'Winner!' },
   }
 
   return action.get && (

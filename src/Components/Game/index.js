@@ -125,6 +125,8 @@ const Game = (playing) => {
     declareWinner: () => {
       const [ winner ] = players.map(({id, score}) => ({ id, score })).sort((a, b) => b.score - a.score)
       players[winner.id].winner = true
+      setActivePlayer(winner.id)
+      setAction('gameOver')
       console.log(`player #${winner.id} wins with ${winner.score}`)
     },
   }

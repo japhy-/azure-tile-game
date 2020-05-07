@@ -151,9 +151,8 @@ H2, H3 {
 }
 
 .Wall .Tile.highlight {
-  border-color: magenta !important;
-  x-border-style: solid !important;
-  x-background-color: gray !important;
+  border-color: red !important;
+  border-style: solid !important;
 }
 
 .PlaceholderTile {

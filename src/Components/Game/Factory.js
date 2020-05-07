@@ -88,7 +88,7 @@ const DiscardedTiles = () => {
   )
 }
 
-const initializeFactory = (nplayers) => forN(0, nplayers*3).map(id => ({id, tiles: []}))
+const initializeFactory = (nplayers) => forN(0, nplayers*2).map(id => ({id, tiles: []}))
 
 export default Factory
 export { initializeFactory }
