@@ -39,7 +39,7 @@ const Factory = () => {
   useEffect(() => {
     if (initialized.get) distributing.set(true)
   // eslint-disable-next-line
-  }, [initialized.get]);
+  }, [initialized.get])
 
   useEffect(() => {
     if (distributing.get) distributeTiles()
