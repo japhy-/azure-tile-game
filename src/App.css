@@ -2,46 +2,64 @@
   box-sizing: border-box;
 }
 
-.App {
+.flex {
   display: flex;
+}
+
+.flex.columns {
+  flex-direction: column;
+}
+
+.flex.rows {
+  flex-direction: row;
+}
+
+.flex.wrap {
+  flex-wrap: wrap;
+}
+
+.flex.just-centered {
+  justify-content: center;
+}
+
+.flex.just-evenly {
+  justify-content: space-evenly;
+}
+
+.flex.align-centered {
+  align-items: center;
+}
+
+.flex > .grow-1 {
+  flex-grow: 1;
+}
+
+.flex > .centered {
+  align-self: center;
 }
 
 H2, H3 {
   margin-bottom: 0;
 }
 
-.Board {
-  display: flex;
-  flex-grow: 1;
+.GameID H1 {
+  margin: 0;
+  margin-bottom: 6px;
 }
 
-.CurrentPlayer {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
+.Player.winning > H2 {
+  background-color: gold;
 }
 
 .OtherPlayers {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
   zoom: 75%;
 }
 
-.Factory {
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-}
-
 .Showrooms {
-  display: flex;
-  justify-content: center;
   min-height: 142px;
 }
 
 .Showroom {
-  display: flex;
   border: 1px solid black;
   background-color: pink;
   margin: 8px;
@@ -54,29 +72,6 @@ H2, H3 {
   cursor: not-allowed;
 }
 
-.Showroom > .Tiles {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-evenly;
-}
-
-.Surplus {
-  display: flex;
-  justify-content: center;
-}
-
-.Surplus > SPAN {
-  align-self: center;
-}
-
-.RemainingTiles,
-.DiscardedTiles {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  zoom: 50%;
-}
-
 .Tile {
   border-style: outset;
 }
@@ -87,59 +82,18 @@ H2, H3 {
 }
 
 .PenaltyTile {
-  display: flex;
-  justify-content: center;
   background-color: white;
   border-color: cyan;
   border-style: outset;
 }
 
 .PenaltyTile > SPAN {
-  align-self: center;
   font-weight: bold;
   font-size: 125%;
 }
 
-.Player {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-
-.Hand {
-  display: flex;
-}
-
-.Hand > B {
-  align-self: center;
-}
-
-.Hand > DIV {
-  display: flex;
-}
-
 .Workshop {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   border-bottom: 1px solid silver;
-}
-
-.Workshop > DIV {
-  display: flex;
-  justify-content: center;
-}
-
-.TileTable, .Wall, .Arrows {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.TileTable > B, .Wall > B, .Arrows > B {
-  align-self: center;
 }
 
 .Wall .Tile {
@@ -150,25 +104,28 @@ H2, H3 {
   text-shadow: -1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black;
 }
 
+.Wall .Tile.highlight {
+  border-color: red !important;
+  border-style: solid !important;
+}
+
 .PlaceholderTile {
-  opacity: 0.25;
+  opacity: 0.15;
 }
 
-.FloorScoreWrapper {
-  display: flex;
-  justify-content: center;
+.PlaceholderTile.Match {
+  border-color: black !important;
+  opacity: 0.5;
 }
 
-.PlayerFloor {
-  display: flex;
+.PlaceholderTile.Pending {
+  border-color: black !important;
+  opacity: 0.4;
 }
 
-.PlayerFloor > B {
-  align-self: center;
-}
-
-.PlayerFloorTiles {
-  display: flex;
+.PlaceholderTile.Completed {
+  border-color: black !important;
+  opacity: 0.75;
 }
 
 .PlayerFloorTiles .Tile {
@@ -187,23 +144,8 @@ H2, H3 {
   order: -1 !important;
 }
 
-
 .PlayerFloorTiles .SlotTile {
   opacity: 0.3;
-}
-
-.Score {
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-}
-
-.Score > B {
-  align-self: center;
-}
-
-.ScoreValue {
-  align-self: center;
 }
 
 .can-drop {

@@ -1,27 +1,26 @@
 import React, { useContext } from 'react'
 import Tile, { PenaltyTile } from './Tile'
-import { GameContext } from '../App'
+import { GameContext } from '.'
 
 const Surplus = () => {
-  const { action, players, factory: { surplus } } = useContext(GameContext)
+  const { backup, action, players, factory: { surplus } } = useContext(GameContext)
 
   const takeSurplusTiles = (tile) => {
     action.set('place')
+    players.color.set(null)
 
     const chosen = []
     const rejected = []
 
     surplus.get.tiles.forEach(t => (t.color === tile.color ? chosen : rejected).push(t))
 
-    // console.log(`you selected ${chosen.length} ${tile.color} tiles from the surplus`)
-    // console.log(`${rejected.length} tiles remain in the surplus`)
+    backup.set({
+      id: -1, chosen, rejected, played: [], penalty: surplus.get.penalty
+    })
+
     if (surplus.get.penalty) {
-      // console.log(`you take the -1 penalty for being the first player to take tiles from the surplus`)
       players.list.get[players.active.get].floor.push({penalty: true})
-
-      // console.log(`but you (player ${players.active.get} will go first next round`)
       players.next.set(players.active.get)
-
       surplus.get.penalty = false
     }
 
@@ -30,11 +29,14 @@ const Surplus = () => {
   }
 
   return (
-    <div className="Surplus">
-      <span>Surplus:</span>
+    <div className="Surplus flex just-centered">
+      <span className="centered">Surplus:</span>
       {surplus.get.penalty && <PenaltyTile/>}
       {surplus.get.tiles.map(t =>
-        <Tile key={`tile-${t.id}`} color={t.color} onClick={action.get === 'draw' ? () => takeSurplusTiles(t) : null}/>
+        <Tile key={`tile-${t.id}`} color={t.color} onClick={action.get === 'draw' ? () => takeSurplusTiles(t) : null}
+          onMouseOver={() => players.color.set(t.color)}
+          onMouseOut={() => players.color.set(null)}
+        />
       )}
     </div>
   )

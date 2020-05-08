@@ -1,8 +1,9 @@
-import React, { useEffect, useState, useContext } from 'react'
+import React, { useEffect, useContext } from 'react'
 import Showroom from './Showroom'
 import Surplus from './Surplus'
 import Tile, { shuffleTiles } from './Tile'
-import { GameContext } from '../App'
+import { GameContext } from '.'
+import { forN } from '../../utilities/Functions'
 
 const Factory = () => {
   const { action, players, initialized, factory: { showrooms, surplus, distributing }, tiles, round } = useContext(GameContext)
@@ -37,15 +38,17 @@ const Factory = () => {
 
   useEffect(() => {
     if (initialized.get) distributing.set(true)
-  }, [initialized.get]);
+  // eslint-disable-next-line
+  }, [initialized.get])
 
   useEffect(() => {
     if (distributing.get) distributeTiles()
+  // eslint-disable-next-line
   }, [distributing.get])
   
   return (
-    <div className="Factory">
-      <div className="Showrooms">
+    <div className="Factory flex columns just-centered">
+      <div className="Showrooms flex just-centered">
         {showrooms.get.map(s => <Showroom key={`showroom-${s.id}`} showroom={s}/>)}
       </div>
       <Surplus/>
@@ -74,7 +77,6 @@ const RemainingTiles = () => {
   )
 }
 
-
 const DiscardedTiles = () => {
   const { tiles: { discard } } = useContext(GameContext)
 
@@ -86,5 +88,7 @@ const DiscardedTiles = () => {
   )
 }
 
+const initializeFactory = (nplayers) => forN(0, nplayers*2).map(id => ({id, tiles: []}))
 
 export default Factory
+export { initializeFactory }
