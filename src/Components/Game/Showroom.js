@@ -3,12 +3,12 @@ import Tile from './Tile'
 import { GameContext } from '.'
 
 const Showroom = ({showroom}) => {
-  const { action, players: { color, active: { chooseTiles} }, factory: { surplus, showrooms } } = useContext(GameContext)
+  const { backup, action, players: { color, active: { chooseTiles} }, factory: { surplus, showrooms } } = useContext(GameContext)
 
   const selectTiles = (tile) => {
     action.set('place')
-    color.set(null); 
-    
+    color.set(null)
+
     const chosen = []
     const rejected = []
 
@@ -16,6 +16,10 @@ const Showroom = ({showroom}) => {
 
     // console.log(`you selected ${chosen.length} ${tile.color} tiles from floor ${showroom.id}`)
     // console.log(`${rejected.length} tiles go to the surplus`)
+
+    backup.set({
+      id: showroom.id, chosen, rejected, played: []
+    })
 
     surplus.set(s => { return { ...s, tiles: [...s.tiles, ...rejected] } })
     chooseTiles(chosen)

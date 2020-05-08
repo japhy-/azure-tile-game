@@ -3,7 +3,7 @@ import Tile, { PenaltyTile } from './Tile'
 import { GameContext } from '.'
 
 const Surplus = () => {
-  const { action, players, factory: { surplus } } = useContext(GameContext)
+  const { backup, action, players, factory: { surplus } } = useContext(GameContext)
 
   const takeSurplusTiles = (tile) => {
     action.set('place')
@@ -13,6 +13,10 @@ const Surplus = () => {
     const rejected = []
 
     surplus.get.tiles.forEach(t => (t.color === tile.color ? chosen : rejected).push(t))
+
+    backup.set({
+      id: -1, chosen, rejected, played: [], penalty: surplus.get.penalty
+    })
 
     if (surplus.get.penalty) {
       players.list.get[players.active.get].floor.push({penalty: true})

@@ -6,31 +6,48 @@ import { forN } from '../../utilities/Functions'
 const PlayerContext = createContext()
 const ActivePlayerContext = createContext({})
 
-const Player = ({player}) => {
-  const { players: { active } } = useContext(GameContext)
+const Player = ({player, stub}) => {
+  const { players: { active, winner } } = useContext(GameContext)
 
   return (
     <PlayerContext.Provider value={player}>
-      <div className="Player flex columns just-centered centered">
-        <h2>Player {player.id}{active.get === player.id && (<>: <ActionButton/></>)}</h2>
-        {active.get === player.id && <Hand/>}
-        <Workshop/>
-        <div className="FloorScoreWrapper flex just-centered">
-          <PlayerFloor/>
-          <Score/>
-        </div>
+      <div className={`Player flex columns just-centered centered ${winner.get === player.id && 'winning'}`}>
+        {stub ? (<>
+          <h2 class="centered">&#9664; [{player.score} pts] Player {1+player.id}</h2>
+        </>) : (<>
+          <h2 class="centered">
+            [{player.score} pts] Player {1+player.id}
+            {active.get === player.id && (<>: <CurrentAction/></>)}
+          </h2>
+          {active.get === player.id && <Hand/>}
+          <Workshop/>
+          <div className="FloorScoreWrapper flex just-centered">
+            <PlayerFloor/>
+            <Score/>
+          </div>
+        </>)}
       </div>
     </PlayerContext.Provider>
   )
 }
 
+const UndoButton = () => {
+  const { backup: { undo } } = useContext(GameContext)
+  return (
+    <button onClick={undo} style={{order: 100}}>Start Over</button>
+  )
+}
+
 const ActivePlayer = () => {
-  const { players, action } = useContext(GameContext)
+  const { backup, players, action } = useContext(GameContext)
   const player = players.list.get[players.active.get]
 
   const [ placed, setPlaced ] = useState(null)
 
   const playTile = (row) => {
+    backup.get.played.push(row)
+    backup.set({...backup.get, setPlaced})
+
     if (row === -1) {
       player.floor.push(player.hand.shift())
     }
@@ -48,13 +65,13 @@ const ActivePlayer = () => {
     }
   }
 
-  return (
+  return player ? (
     <ActivePlayerContext.Provider value={{id: player.id, playTile: action.get === 'place' && playTile, placed}}>
       <div className="ActivePlayer">
         <Player player={player}/>
       </div>
     </ActivePlayerContext.Provider>
-  )
+  ) : null
 }
 
 const OtherPlayers = () => {
@@ -62,41 +79,40 @@ const OtherPlayers = () => {
 
   return (
     <div className="OtherPlayers flex columns grow-1">
-      {players.list.get.filter(p => p.id !== players.active.get).map(p => (
-        <Player key={`player-${p.id}`} player={p}/>
+      {players.list.get.map(p => (
+        <Player key={`player-${p.id}`} player={p} stub={p.id === players.active.get}/>
       ))}
     </div>
   )
 }
 
-const ActionButton = () => {
+const CurrentAction = () => {
   const { action } = useContext(GameContext)
 
-  const buttons = {
-    draw: { label: 'Draw Tiles' },
-    place: { label: 'Place Tiles'},
-    turnEnd: { label: 'End Turn' },
-    scoring: { label: 'Scoring' },
-    gameOver: { label: 'Winner!' },
+  const text = {
+    draw: 'Draw Tiles',
+    place: 'Place Tiles',
+    turnEnd: 'End Turn',
+    scoring: 'Scoring',
+    gameOver: 'Winner!',
   }
 
-  return action.get && (
-    <b>{buttons[action.get].label}</b>
-  )
+  return action.get && (<b>{text[action.get]}</b>)
 }
 
 const Hand = () => {
-  const { players: { color } } = useContext(GameContext)
+  const { action, players: { color } } = useContext(GameContext)
   const { hand: tiles } = useContext(PlayerContext)
 
   return (
-    <div className="Hand flex">
+    <div className="Hand flex just-centered">
       <b className="centered">Hand:</b>
-      <div className="flex">
+      <div className="flex centered">
         {tiles.map(t => <Tile key={`tile-${t.id}`} color={t.color}
           onMouseOver={() => color.set(t.color)}
           onMouseOut={() => color.set(null)}
         />)}
+        {action.get === 'place' && <UndoButton/>}
       </div>
     </div>
   )
@@ -105,7 +121,7 @@ const Hand = () => {
 const Workshop = () => {
   return (
     <div className="Workshop flex columns just-centered centered">
-      <h3>Workshop</h3>
+      <h3 className="centered">Workshop</h3>
       <div className="flex just-centered">
         <TileTable/>
         <Arrows/>
