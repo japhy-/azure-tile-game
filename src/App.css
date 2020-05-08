@@ -38,10 +38,17 @@
   align-self: center;
 }
 
-
-
 H2, H3 {
   margin-bottom: 0;
+}
+
+.GameID H1 {
+  margin: 0;
+  margin-bottom: 6px;
+}
+
+.Player.winning > H2 {
+  background-color: gold;
 }
 
 .OtherPlayers {
@@ -108,12 +115,12 @@ H2, H3 {
 
 .PlaceholderTile.Match {
   border-color: black !important;
-  opacity: 0.33;
+  opacity: 0.5;
 }
 
 .PlaceholderTile.Pending {
   border-color: black !important;
-  opacity: 0.45;
+  opacity: 0.4;
 }
 
 .PlaceholderTile.Completed {
