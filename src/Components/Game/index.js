@@ -5,15 +5,18 @@ import Factory, { initializeFactory } from './Factory'
 import { OtherPlayers, ActivePlayer } from './Player'
 import { ActionContext } from '../../utilities/ActionQueue'
 import { forN } from '../../utilities/Functions'
+// import { StitchContext, useStitchWatcher } from '../../utilities/Stitch'
 
 const GameContext = createContext()
 const delay = 1250
 
-const Game = (playing) => {
+const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
+  // const stitch = useContext(StitchContext)
   const addActions = useContext(ActionContext)
 
   const [ players, setPlayers ] = useState([])
-  const [ activePlayer, setActivePlayer ] = useState(0)
+  const [ activePlayer, setActivePlayer ] = useState(null)
+  const [ winningPlayer, setWinningPlayer ] = useState(null)
   const [ tryColor, setTryColor ] = useState(null)
   const [ nextRoundFirst, setNextRoundFirst ] = useState(null)
   const [ roundOver, setRoundOver ] = useState(false)
@@ -29,7 +32,72 @@ const Game = (playing) => {
   const [ initialized, setInitialized ] = useState(false)
   const [ distributing, setDistributing ] = useState(false)
   const [ round, setRound ] = useState(0)
+
+  const [ backup, setBackup ] = useState({})
+  const restoreBackup = () => {
+    if (backup.id === undefined) return
+
+    // empty the player's hand
+    players[activePlayer].hand = []
+
+    // remove tiles from wherever they've been played
+    backup.played.forEach(row => backup.chosen.push((row === -1 ? players[activePlayer].floor : players[activePlayer].table[row]).pop()))
+
+    if (backup.id === -1) {
+      // restore tiles to the surplus
+      surplus.tiles = [...backup.chosen, ...backup.rejected]
+
+      // reset penalty tile
+      if ((surplus.penalty = backup.penalty)) players[activePlayer].floor.pop()
+    }
+
+    else {
+      // restore tiles to the showroom
+      showrooms[backup.id].tiles = [...backup.chosen, ...backup.rejected]
+      setShowrooms([...showrooms])
   
+      // remove tiles from the surplus
+      surplus.tiles.splice(-backup.rejected.length)
+    }
+
+    setSurplus({...surplus})  
+
+    // clear "placed" state if it exists
+    if (backup.setPlaced) backup.setPlaced(null)
+
+    // update players
+    setPlayers([...players])
+
+    // reset the action to 'draw'
+    setAction('draw')
+  }
+  
+  /*
+  const state = {
+    players: {
+      list: { get: players },
+      active: { get: activePlayer  },
+      winner: { get: winningPlayer },
+      next: { get: nextRoundFirst },
+      color: { get: tryColor },
+    },
+    tiles: {
+      bag: { get: baggedTiles },
+      discard: { get: discardedTiles },
+    },
+    factory: {
+      showrooms: { get: showrooms },
+      distributing: { get: distributing },
+      surplus: { get: surplus },
+    },
+    action: { get: action },
+    initialized: { get: initialized },
+    round: { get: round },
+    over: { get: gameover },
+    backup: { get: backup },
+  }
+  */
+
   const chooseTiles = (tiles) => {
     players[activePlayer].hand = tiles
     setPlayers([...players])
@@ -40,20 +108,44 @@ const Game = (playing) => {
     setAction('draw')
   }
 
-  const newGame = ({nplayers=2, ntiles=20}) => {
-    setPlayers(initializePlayers(nplayers))
-    setActivePlayer(0)
+  /*
+  const { watching, setActive: setWatcherActive } = useStitchWatcher({collection: 'azure', filter: { code }, onNext: (ev) => {
+    if (ev.fullDocument.screenname === screenname) return
+
+    console.log(ev)
+  }})
+  */
+
+  const newGame = /*async*/ () => {
+    if (host) {
+      /*
+      await stitch.game.insertOne({_uid: stitch.user.id, _urw: true, code, nplayers, thiscomp, host: screenname, screenname, state: {}})
+      setWatcherActive(true)
+      */
+
+      setPlayers(initializePlayers(nplayers))
+      
+      setBaggedTiles(initializeTiles({colors: TILE_COLORS, perColor: 20}))
+      setDiscardedTiles([])
+      
+      setShowrooms(initializeFactory(nplayers))
+      setSurplus({penalty: true, tiles: []})
     
-    setBaggedTiles(initializeTiles({colors: TILE_COLORS, perColor: ntiles}))
-    setDiscardedTiles([])
-    
-    setShowrooms(initializeFactory(nplayers))
-    setSurplus({penalty: true, tiles: []})
-    
-    setRoundOver(false)
-    setGameover(false)
-    setRound(0)
-    setInitialized(true)
+      setBackup({})
+      setRoundOver(false)
+      setGameover(false)
+      setRound(0)
+      
+      setActivePlayer(0)
+      setWinningPlayer(-1)
+
+      setInitialized(true)
+    }
+    else {
+      /*
+      setWatcherActive(true)
+      */
+    }
   }
 
   const scoreSteps = {
@@ -76,6 +168,9 @@ const Game = (playing) => {
       tile.round = round
       tile.score = `+${score}`
       p.table[i] = []
+
+      const [ winner ] = players.map(({id, score}) => ({ id, score })).sort((a, b) => b.score - a.score)
+      setWinningPlayer(winner.id)
     },
     clearHighlight: ({player: p}) => {
       p.wall.forEach(r => r.forEach(c => c && (c.highlight = false)))
@@ -86,6 +181,9 @@ const Game = (playing) => {
       p.score += TILE_PENALTIES[i] || 0
       if (p.score < 0) p.score = 0
       p.floor[i] = {}
+
+      const [ winner ] = players.map(({id, score}) => ({ id, score })).sort((a, b) => b.score - a.score)
+      setWinningPlayer(winner.id)
     },
     clearFloor: ({player: p}) => {
       p.floor = []
@@ -109,22 +207,31 @@ const Game = (playing) => {
       p.wall[i].forEach(c => c.highlight = true)
       p.wall[i][4].score = '+2'
       p.score += 2
+
+      const [ winner ] = players.map(({id, score}) => ({ id, score })).sort((a, b) => b.score - a.score)
+      setWinningPlayer(winner.id)
     },
     bonusCol: ({player: p, col: i}) => {
       console.log(`player ${p.id}: col ${i} gives +7`)
       p.wall.forEach(r => r[i].highlight = true)
       p.wall[0][i].score = '+7'
       p.score += 7
+
+      const [ winner ] = players.map(({id, score}) => ({ id, score })).sort((a, b) => b.score - a.score)
+      setWinningPlayer(winner.id)
     },
     bonusColor: ({player: p, color: c, cells}) => {
       console.log(`player ${p.id}: color ${c} gives +10`)
       cells.forEach(t => t.highlight = true)
       cells[2].score = '+10'
       p.score += 10
+
+      const [ winner ] = players.map(({id, score}) => ({ id, score })).sort((a, b) => b.score - a.score)
+      setWinningPlayer(winner.id)
     },
     declareWinner: () => {
       const [ winner ] = players.map(({id, score}) => ({ id, score })).sort((a, b) => b.score - a.score)
-      players[winner.id].winner = true
+      setWinningPlayer(winner.id)
       setActivePlayer(winner.id)
       setAction('gameOver')
       console.log(`player #${winner.id} wins with ${winner.score}`)
@@ -156,7 +263,6 @@ const Game = (playing) => {
     // console.log("game over, calculating bonuses...")
     players.forEach(p => {
       const allCells = Array.prototype.concat(...p.wall)
-      ;
 
       steps.push({ step: 'activatePlayer', player: p })
 
@@ -208,6 +314,7 @@ const Game = (playing) => {
     players: {
       list: { get: players, set: setPlayers },
       active: { get: activePlayer, set: setActivePlayer, chooseTiles, nextPlayer },
+      winner: { get: winningPlayer, set: setWinningPlayer },
       next: { get: nextRoundFirst, set: setNextRoundFirst },
       color: { get: tryColor, set: setTryColor },
     },
@@ -228,20 +335,40 @@ const Game = (playing) => {
     },
     newGame,
     over: { get: gameover, set: setGameover },
+    backup: { 
+      get: backup, set: setBackup, undo: restoreBackup
+    }
   }
+
+  /*
+  useEffect(() => {
+    console.log('rendering...')
+
+    // if (myTurn) stitch.game.updateOne({code}, {$set: { screenname, state }})
+
+    // eslint-disable-next-line
+  }, [players, activePlayer, winningPlayer])
+  */
 
   useEffect(() => {
     if (action === 'turnEnd') {
       if (game.factory.showrooms.areEmpty && game.factory.surplus.isEmpty) game.round.score(gameover)
       else addActions({key: 'nextPlayer', pause: 750, event: game.players.active.nextPlayer})
     }
-  // eslint-disable-next-line
+    // eslint-disable-next-line
   }, [action])
 
   useEffect(() => {
-    if (playing.code) game.newGame(playing)
-  // eslint-disable-next-line
-  }, [playing])
+    if (code) {
+      if (host) game.newGame()
+      // else game.readGame()
+    }
+    // eslint-disable-next-line
+  }, [code])
+
+  useEffect(() => {
+    setBackup({})
+  }, [activePlayer])
 
   useEffect(() => {
     if (roundOver) {
@@ -259,18 +386,28 @@ const Game = (playing) => {
 
   return initialized ? (
     <GameContext.Provider value={game}>
-      <div className={`Game flex grow-1 ${action}`}>
+      <div className={`Game flex columns grow-1 ${action}`}>
         <TileStyles/>
-        <div className="CurrentPlayer flex columns grow-1">
-          <Factory/>
-          <ActivePlayer/>
+        <GameID {...{nplayers, code}}/>
+        <div class="flex rows">
+          <div className="CurrentPlayer flex columns grow-1">
+            <Factory/>
+            <ActivePlayer/>
+          </div>
+          <OtherPlayers/>
         </div>
-        <OtherPlayers/>
-        {gameover && "Game Over!"}
       </div>
     </GameContext.Provider>
   ) : (
     <div>Building Game...</div>
+  )
+}
+
+const GameID = ({nplayers, code}) => {
+  return (
+    <div class="GameID flex just-centered">
+      <h1>{nplayers}-Player Game of Azure (Code: {code.toUpperCase()})</h1>
+    </div>
   )
 }
 

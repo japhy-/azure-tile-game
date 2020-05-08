@@ -21,7 +21,7 @@ const Lobby = ({game}) => {
   useEffect(() => {
     if (stitch.user && stitch.user.isLoggedIn) {
       stitch.accounts.findOne({screenname}).then(res => storage.set('_id', res._id.toString()))
-      stitch.game.insertOne({_uid: stitch.user.id, _uids: ['all'], type: 'login', ts: new Date (), details: `${screenname} logged in`})
+      // stitch.game.insertOne({_uid: stitch.user.id, _uids: ['all'], type: 'login', ts: new Date (), details: `${screenname} logged in`})
     }
     // eslint-disable-next-line
   }, [stitch.user && stitch.user.isLoggedIn])
@@ -91,12 +91,12 @@ const LobbyProper = ({game}) => {
   const screenname = storage.get('screenname')
 
   const [ nplayers, setNplayers ] = useState(2)
-  const [ thiscomp, setThiscomp ] = useState(2)
+  const [ thiscomp, setThiscomp ] = useState(1)
   const [ code, setCode ] = useState('')
   const [ joinCode, setJoinCode ] = useState('')
 
   const logout = () => {
-    stitch.game.insertOne({_uid: stitch.user.id, _uids: ['all'], type: 'logout', ts: new Date (), details: `${screenname} logged out`})
+    // stitch.game.insertOne({_uid: stitch.user.id, _uids: ['all'], type: 'logout', ts: new Date (), details: `${screenname} logged out`})
     storage.set('autologin', false)
     stitch.logout()
   }
@@ -125,7 +125,7 @@ const LobbyProper = ({game}) => {
         ))}</div>
       </div>
       <div>
-        <button onClick={() => game({screenname, code, nplayers})}>New Game</button>
+        <button onClick={() => game({screenname, code, nplayers, thiscomp, host: true})}>New Game</button>
       </div>
       <h2>Join a Game</h2>
       <div>
@@ -133,7 +133,7 @@ const LobbyProper = ({game}) => {
         <input type="text" name="code" maxLength={4} style={{width: '4em'}} onChange={(ev) => setJoinCode(ev.target.value)}/>
       </div>
       <div>
-        <button onClick={() => game({screenname, code: joinCode})}>Join Game</button>
+        <button onClick={() => game({screenname, code: joinCode, host: false})}>Join Game</button>
       </div>
       <hr/>
       <div>
@@ -200,7 +200,7 @@ const Chat = ({channel}) => {
             </div>
           ))}
           {pending.current && (<div key={`message-pending`}>
-            ![{pending.current.ts.toLocaleString()}] <b>{pending.current.from}</b>: {pending.current.message}
+            [{pending.current.ts.toLocaleString()}] <b>{pending.current.from}</b>: {pending.current.message}
           </div>)}
           </>
         ) : (
