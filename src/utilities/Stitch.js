@@ -1,8 +1,8 @@
 import React, { useState, createContext, useEffect, useContext, useRef } from 'react'
 import * as S from '../constants'
-import { UserPasswordCredential, FunctionCredential } from 'mongodb-stitch-browser-sdk';
+import { UserPasswordCredential, FunctionCredential } from 'mongodb-stitch-browser-sdk'
 
-const { Stitch, RemoteMongoClient, AnonymousCredential } = require('mongodb-stitch-browser-sdk');
+const { Stitch, RemoteMongoClient, AnonymousCredential } = require('mongodb-stitch-browser-sdk')
 
 const StitchContext = createContext({})
 
@@ -15,8 +15,8 @@ const StitchWrapper = ({cluster=S.CLUSTER, database=S.DATABASE, collection=S.COL
   const [ anon, setAnon ] = useState(false)
 
   useEffect(() => {
-    const client = Stitch.initializeDefaultAppClient(cluster);
-    const root = client.getServiceClient(RemoteMongoClient.factory, 'mongodb-atlas');
+    const client = Stitch.initializeDefaultAppClient(cluster)
+    const root = client.getServiceClient(RemoteMongoClient.factory, 'mongodb-atlas')
     const db = root.db(database)
     const game = db.collection(collection)
     const accounts = db.collection(accountsCollection)
@@ -90,30 +90,42 @@ const StitchWatcher = ({children, ...props}) => {
   )
 }
 
-const useStitchWatcher = ({database=null, collection, onNext=(ev) => console.log(ev), compact=false, filter=[]}) => {
+const useStitchWatcher = ({database=null, collection, onNext=(ev) => console.log(ev), compact=false, active=true, filter=[]}) => {
   const stitch = useContext(StitchContext)
   const [ ready, setReady ] = useState(false)
+  const [ isActive, setActive ] = useState(active)
   const watcherRef = useRef(null)
 
-  useEffect(() => {
-    // connect watcher
-    stitch.user && stitch.user.isLoggedIn && (database === null ? stitch.db : stitch.root.db(database)).collection(collection)[compact ? 'watchCompact' : 'watch'](filter).then(w => {
-      // console.log('opening watcher', w)
+  const activate = () => {
+    !watcherRef.current && stitch.user && stitch.user.isLoggedIn && (database === null ? stitch.db : stitch.root.db(database)).collection(collection)[compact ? 'watchCompact' : 'watch'](filter).then(w => {
+      console.log('opening watcher', w)
       w.onNext((ev) => onNext(ev, new Date ()))
       watcherRef.current = w
       setReady(true)
     })
+  }
 
-    // disconnect watcher
-    return () => {
-      // console.log('closing watcher', watcherRef)
+  const deactivate = () => {
+    if (watcherRef.current) {
+      console.log('closing watcher', watcherRef)
       watcherRef.current && watcherRef.current.close()
       setReady(false)
     }
-  // eslint-disable-next-line
+  }
+
+  useEffect(() => {
+    if (isActive) activate()
+    else deactivate()
+    // eslint-disable-next-line
+  }, [isActive])
+
+  useEffect(() => {
+    if (isActive) activate()
+    return deactivate
+    // eslint-disable-next-line
   }, [])
 
-  return { ready, stream: watcherRef.current }
+  return { ready, stream: watcherRef.current, setActive }
 }
 
 export default StitchWrapper
