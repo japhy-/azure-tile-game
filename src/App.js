@@ -7,7 +7,7 @@ import './App.css'
 import ActionWrapper from './utilities/ActionQueue'
 
 const App = () => {
-  const [ playing, setPlaying ] = useState({code: 'abcd', nplayers: 2})
+  const [ playing, setPlaying ] = useState({host: true, code: 'abcd', nplayers: 2})
 
   return (
     <StitchWrapper>
