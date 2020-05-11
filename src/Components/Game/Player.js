@@ -1,4 +1,4 @@
-import React, { useState, useContext, createContext } from 'react'
+import React, { useState, useContext, createContext, useEffect } from 'react'
 import Tile, { SlotTile, PenaltyTile, PlaceholderTile, TILE_ORDER, TILE_PENALTIES, TILE_SIZE, TILE_BORDER, TILE_MARGIN } from './Tile'
 import { GameContext } from '.'
 import { forN } from '../../utilities/Functions'
@@ -7,23 +7,32 @@ const PlayerContext = createContext()
 const ActivePlayerContext = createContext({})
 
 const Player = ({player, stub}) => {
-  const { players: { active, winner } } = useContext(GameContext)
+  const { over, players: { active, winner } } = useContext(GameContext)
+
+  useEffect(() => {
+    forN(5).forEach(n => {
+      if (player.table[n].filter(c => c.id).length === 0 && player.wall[n].filter(c => c.id).length === 4) {
+        over.set(true)
+      }
+    })
+  }, [player.table, player.wall])
 
   return (
     <PlayerContext.Provider value={player}>
       <div className={`Player flex columns just-centered centered ${winner.get === player.id && 'winning'}`}>
         {stub ? (<>
-          <h2 class="centered">&#9664; [{player.score} pts] Player {1+player.id}</h2>
+          <h2 className="centered">&#9664; [{player.score.total + player.score.thisRound} pts] Player {1+player.id}</h2>
         </>) : (<>
-          <h2 class="centered">
-            [{player.score} pts] Player {1+player.id}
+          <h2 className="centered">
+            [{player.score.total + player.score.thisRound} pts] Player {1+player.id}
             {active.get === player.id && (<>: <CurrentAction/></>)}
           </h2>
           {active.get === player.id && <Hand/>}
           <Workshop/>
           <div className="FloorScoreWrapper flex just-centered">
             <PlayerFloor/>
-            <Score/>
+            <Score label="This Round" value={player.score.thisRound}/>
+            <Score label="Total" value={player.score.total}/>
           </div>
         </>)}
       </div>
@@ -78,7 +87,7 @@ const OtherPlayers = () => {
   const { players } = useContext(GameContext)
 
   return (
-    <div className="OtherPlayers flex columns grow-1">
+    <div className="OtherPlayers flex columns">
       {players.list.get.map(p => (
         <Player key={`player-${p.id}`} player={p} stub={p.id === players.active.get}/>
       ))}
@@ -227,7 +236,7 @@ const WallRow = ({row, tiles}) => {
 
 const WallCell = ({row, col, tile=null}) => {
   const { players: { list, color } } = useContext(GameContext)
-  const { id: activeId } = useContext(ActivePlayerContext)
+  // const { id: activeId } = useContext(ActivePlayerContext)
   const { id } = useContext(PlayerContext)
 
   const pending =
@@ -237,7 +246,7 @@ const WallCell = ({row, col, tile=null}) => {
 
   return (
     <td className="WallCell">
-      {tile.id > -1 ? <Tile score={tile.score} highlight={tile.highlight} color={tile.color} round={tile.round}/> : <PlaceholderTile color={tile.color} pending={pending} match={id === activeId && color.get === tile.color}/>}
+      {tile.id ? <Tile score={tile.score} highlight={tile.highlight} color={tile.color} round={tile.round}/> : <PlaceholderTile color={tile.color} pending={pending} match={/*id === activeId &&*/ color.get === tile.color}/>}
     </td>
   )
 }
@@ -250,9 +259,9 @@ const PlayerFloor = () => {
     playTile
 
   return (
-    <div className={`PlayerFloor flex ${canDropTile ? 'can-drop' : 'cannot-drop'}`} onClick={canDropTile ? () => playTile(-1) : null}>
+    <div className={`PlayerFloor flex just-centered ${canDropTile ? 'can-drop' : 'cannot-drop'}`} onClick={canDropTile ? () => playTile(-1) : null}>
       <b className="centered">Floor</b>
-      <div className="PlayerFloorTiles flex">
+      <div className="PlayerFloorTiles flex centered">
         {forN(7).map(i => tiles[i]).map((t={}, i) => t.penalty ?
           <PenaltyTile key={`tile-penalty`} penalty={true}/> :
           (t.id ? <Tile key={`tile-${t.id}`} color={t.color} score={TILE_PENALTIES[i]} round={TILE_PENALTIES[i]}/> : <SlotTile key={`slot-${i}`} penalty={TILE_PENALTIES[i]} />)
@@ -262,13 +271,11 @@ const PlayerFloor = () => {
   )
 }
 
-const Score = () => {
-  const { score } = useContext(PlayerContext)
-
+const Score = ({ label, value }) => {
   return (
     <div className="Score flex columns just-centered">
-      <b className="centered">Score</b>
-      <div className="ScoreValue centered">{score}</div>
+      <b className="centered">{label}</b>
+      <div className="ScoreValue centered">{value}</div>
     </div>
   )
 }
@@ -276,7 +283,7 @@ const Score = () => {
 const initializePlayers = (n) => {
   const players = []
   for (let i = 0; i < n; i++) {
-    players.push({id: i, hand: [], score: 0, table: [[],[],[],[],[]], wall: [[],[],[],[],[]], floor: []})
+    players.push({id: i, hand: [], score: { thisRound: 0, total: 0 }, table: [[],[],[],[],[]], wall: [[],[],[],[],[]], floor: []})
   }
   return players
 }
