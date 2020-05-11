@@ -7,15 +7,16 @@ const PlayerContext = createContext()
 const ActivePlayerContext = createContext({})
 
 const Player = ({player, stub}) => {
-  const { over, players: { active, winner } } = useContext(GameContext)
+  const { over, action, players: { active, winner } } = useContext(GameContext)
 
   useEffect(() => {
-    forN(5).forEach(n => {
-      if (player.table[n].filter(c => c.id).length === 0 && player.wall[n].filter(c => c.id).length === 4) {
+    if (!over.get && (action.get === 'place' || action.get === 'turnEnd')) forN(5).forEach(n => {
+      if (player.table[n].filter(t => t.id).length === (n+1) && player.wall[n].filter(t => t.id).length === 4) {
+        console.log(`${player.id+1} row ${n+1} signals game over`)
         over.set(true)
       }
     })
-  }, [player.table, player.wall])
+  }, [over.get, player.table, player.wall, player.id, action.get])
 
   return (
     <PlayerContext.Provider value={player}>

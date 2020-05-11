@@ -49,7 +49,10 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
       surplus.tiles = [...backup.chosen, ...backup.rejected]
 
       // reset penalty tile
-      if ((surplus.penalty = backup.penalty)) players[activePlayer].floor.pop()
+      if ((surplus.penalty = backup.penalty)) {
+        players[activePlayer].floor.pop()
+        setMessages(msgs => msgs.slice(1))
+      }
     }
 
     else {
@@ -117,7 +120,7 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
       row.forEach((t, n) => n !== i && discardedTiles.push(t))
       p.wall[i][(TILE_POSITIONS[tile.color] - i + 5) % 5] = tile
 
-      // if (p.wall[i].filter(t => t).length === 5) setGameover(true)
+      if (p.wall[i].filter(t => t).length === 5) setGameover(true)
 
       const { score, cells } = scoreTile(p.wall, i, (TILE_POSITIONS[tile.color] - i + 5) % 5)
       p.score.thisRound += score
@@ -364,7 +367,7 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
 
   return initialized ? (
     <GameContext.Provider value={game}>
-      <div className={`Game flex columns grow-1 ${action}`}>
+      <div className={`Game flex columns grow-1 ${action} ${gameover && 'gameover'}`}>
         <TileStyles/>
         <GameID {...{nplayers, code}}/>
         <div className="flex rows">
