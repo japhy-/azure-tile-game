@@ -4,7 +4,7 @@ import { GameContext } from '.'
 const TILE_COLORS = {
   blue: 'cyan',
   black: 'silver',
-  brown: 'tan',
+  maroon: 'tan',
   green: 'lime',
   orange: 'yellow',
 }
@@ -89,7 +89,7 @@ const PenaltyTile = ({penalty=false}) => {
 const initializeTiles = ({colors, perColor}) => {
   let id = 0
   const tiles = Object.keys(colors).reduce((acc, color) => {
-    for (let i = 0; i < perColor; i++) acc.push({ id: id++, color })
+    for (let i = 0; i < perColor; i++) acc.push({ id: ++id, color })
     return acc
   }, [])
 
