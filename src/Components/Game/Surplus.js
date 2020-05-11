@@ -3,7 +3,7 @@ import Tile, { PenaltyTile } from './Tile'
 import { GameContext } from '.'
 
 const Surplus = () => {
-  const { backup, action, players, factory: { surplus } } = useContext(GameContext)
+  const { messages, backup, action, players, factory: { surplus } } = useContext(GameContext)
 
   const takeSurplusTiles = (tile) => {
     action.set('place')
@@ -19,6 +19,8 @@ const Surplus = () => {
     })
 
     if (surplus.get.penalty) {
+      console.log("player took penalty tile")
+      messages.add(`Player ${players.active.get+1} took the penalty tile!`)
       players.list.get[players.active.get].floor.push({penalty: true})
       players.next.set(players.active.get)
       surplus.get.penalty = false
