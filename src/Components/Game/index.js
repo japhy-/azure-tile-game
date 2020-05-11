@@ -5,13 +5,11 @@ import Factory, { initializeFactory } from './Factory'
 import { OtherPlayers, ActivePlayer } from './Player'
 import { ActionContext } from '../../utilities/ActionQueue'
 import { forN } from '../../utilities/Functions'
-// import { StitchContext, useStitchWatcher } from '../../utilities/Stitch'
 
 const GameContext = createContext()
-const delay = 1250
+const delay = 2000
 
 const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
-  // const stitch = useContext(StitchContext)
   const addActions = useContext(ActionContext)
 
   const [ players, setPlayers ] = useState([])
@@ -27,6 +25,9 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
 
   const [ showrooms, setShowrooms ] = useState([])
   const [ surplus, setSurplus ] = useState({})
+
+  const [ messages, setMessages ] = useState([])
+  const addMessage = (msg) => setMessages(m => [msg, ...m].slice(0, 5))
 
   const [ action, setAction ] = useState(null)
   const [ initialized, setInitialized ] = useState(false)
@@ -72,32 +73,6 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
     setAction('draw')
   }
   
-  /*
-  const state = {
-    players: {
-      list: { get: players },
-      active: { get: activePlayer  },
-      winner: { get: winningPlayer },
-      next: { get: nextRoundFirst },
-      color: { get: tryColor },
-    },
-    tiles: {
-      bag: { get: baggedTiles },
-      discard: { get: discardedTiles },
-    },
-    factory: {
-      showrooms: { get: showrooms },
-      distributing: { get: distributing },
-      surplus: { get: surplus },
-    },
-    action: { get: action },
-    initialized: { get: initialized },
-    round: { get: round },
-    over: { get: gameover },
-    backup: { get: backup },
-  }
-  */
-
   const chooseTiles = (tiles) => {
     players[activePlayer].hand = tiles
     setPlayers([...players])
@@ -108,21 +83,8 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
     setAction('draw')
   }
 
-  /*
-  const { watching, setActive: setWatcherActive } = useStitchWatcher({collection: 'azure', filter: { code }, onNext: (ev) => {
-    if (ev.fullDocument.screenname === screenname) return
-
-    console.log(ev)
-  }})
-  */
-
-  const newGame = /*async*/ () => {
+  const newGame = () => {
     if (host) {
-      /*
-      await stitch.game.insertOne({_uid: stitch.user.id, _urw: true, code, nplayers, thiscomp, host: screenname, screenname, state: {}})
-      setWatcherActive(true)
-      */
-
       setPlayers(initializePlayers(nplayers))
       
       setBaggedTiles(initializeTiles({colors: TILE_COLORS, perColor: 20}))
@@ -142,9 +104,6 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
       setInitialized(true)
     }
     else {
-      /*
-      setWatcherActive(true)
-      */
     }
   }
 
@@ -158,10 +117,12 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
       row.forEach((t, n) => n !== i && discardedTiles.push(t))
       p.wall[i][(TILE_POSITIONS[tile.color] - i + 5) % 5] = tile
 
-      if (p.wall[i].filter(t => t).length === 5) setGameover(true)
+      // if (p.wall[i].filter(t => t).length === 5) setGameover(true)
 
       const { score, cells } = scoreTile(p.wall, i, (TILE_POSITIONS[tile.color] - i + 5) % 5)
-      p.score += score
+      p.score.thisRound += score
+
+      addMessage(`Player ${p.id+1} scores ${score} point(s) from the ${tile.color} tile in row ${i+1}, for a total of ${p.score.thisRound}`)
 
       cells.forEach(([r, c]) => p.wall[r][c].highlight = true)
 
@@ -169,7 +130,7 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
       tile.score = `+${score}`
       p.table[i] = []
 
-      const [ winner ] = players.map(({id, score}) => ({ id, score })).sort((a, b) => b.score - a.score)
+      const [ winner ] = players.map(({id, score}) => ({ id, score })).sort((a, b) => (b.score.total + b.score.thisRound) - (a.score.total + a.score.thisRound))
       setWinningPlayer(winner.id)
     },
     clearHighlight: ({player: p}) => {
@@ -178,11 +139,12 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
     },
     scoreFloor: ({player: p, tile: t, position: i}) => {
       if (t.id) discardedTiles.push(t)
-      p.score += TILE_PENALTIES[i] || 0
-      if (p.score < 0) p.score = 0
+      p.score.thisRound += TILE_PENALTIES[i] || 0
       p.floor[i] = {}
 
-      const [ winner ] = players.map(({id, score}) => ({ id, score })).sort((a, b) => b.score - a.score)
+      addMessage(`Player ${p.id+1} loses ${-TILE_PENALTIES[i]} point(s) from a wasted tile, for a total of ${p.score.thisRound}`)
+
+      const [ winner ] = players.map(({id, score}) => ({ id, score })).sort((a, b) => (b.score.total + b.score.thisRound) - (a.score.total + a.score.thisRound))
       setWinningPlayer(winner.id)
     },
     clearFloor: ({player: p}) => {
@@ -193,12 +155,18 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
       setDiscardedTiles([...discardedTiles])
       return true
     },
-    clearScore: () => {
+    clearScores: () => {
       players.forEach(({wall}) => wall.forEach(r => r.forEach(c => c && c.score && (c.score = ''))))
+      players.forEach(p => {
+        p.score.total += p.score.thisRound
+        if (p.score.total < 0) p.score.total = 0
+        p.score.thisRound = 0
+      })
       return true
     },
     nextRound: () => {
       players.forEach(({wall}) => wall.forEach(r => r.forEach(c => c && c.score && (c.score = ''))))
+      // setMessages([])
       setPlayers([...players])
       setRoundOver(true)
     },
@@ -206,35 +174,49 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
       console.log(`player ${p.id}: row ${i} gives +2`)
       p.wall[i].forEach(c => c.highlight = true)
       p.wall[i][4].score = '+2'
-      p.score += 2
+      p.score.thisRound += 2
 
-      const [ winner ] = players.map(({id, score}) => ({ id, score })).sort((a, b) => b.score - a.score)
+      addMessage(`Player ${p.id+1} gets a 2-point bonus from complete row ${i+1}, for a total of ${p.score.thisRound}`)
+
+      const [ winner ] = players.map(({id, score}) => ({ id, score })).sort((a, b) => (b.score.total + b.score.thisRound) - (a.score.total + a.score.thisRound))
       setWinningPlayer(winner.id)
     },
     bonusCol: ({player: p, col: i}) => {
       console.log(`player ${p.id}: col ${i} gives +7`)
       p.wall.forEach(r => r[i].highlight = true)
       p.wall[0][i].score = '+7'
-      p.score += 7
+      p.score.thisRound += 7
 
-      const [ winner ] = players.map(({id, score}) => ({ id, score })).sort((a, b) => b.score - a.score)
+      addMessage(`Player ${p.id+1} gets a 7-point bonus from complete column ${i+1}, for a total of ${p.score.thisRound}`)
+
+      const [ winner ] = players.map(({id, score}) => ({ id, score })).sort((a, b) => (b.score.total + b.score.thisRound) - (a.score.total + a.score.thisRound))
       setWinningPlayer(winner.id)
     },
     bonusColor: ({player: p, color: c, cells}) => {
       console.log(`player ${p.id}: color ${c} gives +10`)
       cells.forEach(t => t.highlight = true)
       cells[2].score = '+10'
-      p.score += 10
+      p.score.thisRound += 10
 
-      const [ winner ] = players.map(({id, score}) => ({ id, score })).sort((a, b) => b.score - a.score)
+      addMessage(`Player ${p.id+1} gets a 10-point bonus for having all five ${c} tiles, for a total of ${p.score.thisRound}`)
+
+      const [ winner ] = players.map(({id, score}) => ({ id, score })).sort((a, b) => (b.score.total + b.score.thisRound) - (a.score.total + a.score.thisRound))
       setWinningPlayer(winner.id)
     },
     declareWinner: () => {
-      const [ winner ] = players.map(({id, score}) => ({ id, score })).sort((a, b) => b.score - a.score)
+      players.forEach(p => {
+        p.score.total += p.score.thisRound
+        p.score.thisRound = 0
+      })
+
+      const [ winner ] = players.map(({id, score}) => ({ id, score })).sort((a, b) => (b.score.total + b.score.thisRound) - (a.score.total + a.score.thisRound))
+
+      addMessage(`Player ${winner.id+1} wins with ${winner.score.total} points!`)
+
       setWinningPlayer(winner.id)
       setActivePlayer(winner.id)
       setAction('gameOver')
-      console.log(`player #${winner.id} wins with ${winner.score}`)
+      console.log(`player #${winner.id} wins with ${winner.score.total}`)
     },
   }
 
@@ -248,9 +230,9 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
       p.table.forEach((row, i) => row.length === i+1 && steps.push({ step: 'scoreTile', player: p, row, position: i }) && steps.push({ step: 'clearHighlight', player: p }))
       p.floor.forEach((t, i) => steps.push({ step: 'scoreFloor', player: p, tile: t, position: i }))
       steps.push({ step: 'clearFloor', player: p })
-      steps.push({ step: 'clearScore' })
     })
 
+    steps.push({ step: 'clearScores' })
     steps.push({ step: 'cleanUp' })
     steps.push({ step: 'nextRound' })
 
@@ -266,33 +248,34 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
 
       steps.push({ step: 'activatePlayer', player: p })
 
+      let bonus = false
       forN(5).forEach(i => {
         if (p.wall[i].filter(t => t).length === 5) {
           steps.push({ step: 'bonusRow', player: p, row: i })
-          steps.push({ step: 'clearHighlight', player: p })
+          bonus = true
         }
       })
+      if (bonus) steps.push({ step: 'clearHighlight', player: p })
 
-      steps.push({ step: 'clearScore' })
-
+      bonus = false
       forN(5).forEach(i => {
         if (p.wall.filter(r => r[i]).length === 5) {
           steps.push({ step: 'bonusCol', player: p, col: i })
-          steps.push({ step: 'clearHighlight', player: p })
+          bonus = true
         }
       })
+      if (bonus) steps.push({ step: 'clearHighlight', player: p })
 
-      steps.push({ step: 'clearScore' })
-
+      bonus = false
       forN(5).forEach(i => {
         const cells = allCells.filter(t => t.color === TILE_ORDER[i])
         if (cells.length === 5) {
           steps.push({ step: 'bonusColor', player: p, color: TILE_ORDER[i], cells })
-          steps.push({ step: 'clearHighlight', player: p })
+          bonus = true
         }
       })
+      if (bonus) steps.push({ step: 'clearHighlight', player: p })
 
-      steps.push({ step: 'clearScore' })
     })
 
     steps.push({step: 'declareWinner'})
@@ -327,6 +310,7 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
       distributing: { get: distributing, set: setDistributing },
       surplus: { get: surplus, set: setSurplus, isEmpty: !surplus.penalty && surplus.tiles && surplus.tiles.length === 0 },
     },
+    messages: { get: messages, set: setMessages, add: addMessage },
     action: { get: action, set: setAction },
     initialized: { get: initialized, set: setInitialized },
     round: {
@@ -340,16 +324,6 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
     }
   }
 
-  /*
-  useEffect(() => {
-    console.log('rendering...')
-
-    // if (myTurn) stitch.game.updateOne({code}, {$set: { screenname, state }})
-
-    // eslint-disable-next-line
-  }, [players, activePlayer, winningPlayer])
-  */
-
   useEffect(() => {
     if (action === 'turnEnd') {
       if (game.factory.showrooms.areEmpty && game.factory.surplus.isEmpty) game.round.score(gameover)
@@ -357,6 +331,10 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
     }
     // eslint-disable-next-line
   }, [action])
+
+  useEffect(() => {
+    if (gameover) addMessage("Game will end when this round is over!")
+  }, [gameover])
 
   useEffect(() => {
     if (code) {
@@ -389,10 +367,11 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
       <div className={`Game flex columns grow-1 ${action}`}>
         <TileStyles/>
         <GameID {...{nplayers, code}}/>
-        <div class="flex rows">
+        <div className="flex rows">
           <div className="CurrentPlayer flex columns grow-1">
             <Factory/>
             <ActivePlayer/>
+            <Messages/>
           </div>
           <OtherPlayers/>
         </div>
@@ -403,9 +382,18 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
   )
 }
 
+const Messages = () => {
+  const { messages } = useContext(GameContext)
+  return (
+    <div className="Messages flex columns just-centered">
+      {messages.get && messages.get.map((message, i) => (<div key={`message-${i}`} className={`Message Message-${i+1} centered`}>{message}</div>))}
+    </div>
+  )
+}
+
 const GameID = ({nplayers, code}) => {
   return (
-    <div class="GameID flex just-centered">
+    <div className="GameID flex just-centered">
       <h1>{nplayers}-Player Game of Azure (Code: {code.toUpperCase()})</h1>
     </div>
   )
@@ -413,3 +401,59 @@ const GameID = ({nplayers, code}) => {
 
 export default Game
 export { GameContext }
+
+// import { StitchContext, useStitchWatcher } from '../../utilities/Stitch'
+  // const stitch = useContext(StitchContext)
+
+  /*
+  const state = {
+    players: {
+      list: { get: players },
+      active: { get: activePlayer  },
+      winner: { get: winningPlayer },
+      next: { get: nextRoundFirst },
+      color: { get: tryColor },
+    },
+    tiles: {
+      bag: { get: baggedTiles },
+      discard: { get: discardedTiles },
+    },
+    factory: {
+      showrooms: { get: showrooms },
+      distributing: { get: distributing },
+      surplus: { get: surplus },
+    },
+    action: { get: action },
+    initialized: { get: initialized },
+    round: { get: round },
+    over: { get: gameover },
+    backup: { get: backup },
+  }
+  */
+
+  /*
+  const { watching, setActive: setWatcherActive } = useStitchWatcher({collection: 'azure', filter: { code }, onNext: (ev) => {
+    if (ev.fullDocument.screenname === screenname) return
+
+    console.log(ev)
+  }})
+  */
+
+  /*
+  useEffect(() => {
+    console.log('rendering...')
+
+    // if (myTurn) stitch.game.updateOne({code}, {$set: { screenname, state }})
+
+    // eslint-disable-next-line
+  }, [players, activePlayer, winningPlayer])
+  */
+
+
+        /*
+      await stitch.game.insertOne({_uid: stitch.user.id, _urw: true, code, nplayers, thiscomp, host: screenname, screenname, state: {}})
+      setWatcherActive(true)
+      */
+      /*
+      setWatcherActive(true)
+      */

@@ -6,11 +6,15 @@ import { GameContext } from '.'
 import { forN } from '../../utilities/Functions'
 
 const Factory = () => {
-  const { action, players, initialized, factory: { showrooms, surplus, distributing }, tiles, round } = useContext(GameContext)
+  const { messages, action, players, initialized, factory: { showrooms, surplus, distributing }, tiles, round } = useContext(GameContext)
 
   const distributeTiles = () => {
     distributing.set(false)
+
+    if (players.winner.get > -1) messages.add(`Player ${players.winner.get+1} is leading with ${players.list.get[players.winner.get].score.total} points`)
+    messages.add(`Round ${round.get+1}`)
     round.set(r => r+1)
+
     const tilesNeeded = 4 * showrooms.get.length
     
     // console.log(`${tilesNeeded} tiles needed for ${showrooms.get.length} floors`)
