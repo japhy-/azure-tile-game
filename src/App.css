@@ -2,6 +2,10 @@
   box-sizing: border-box;
 }
 
+.App {
+  margin-right: 1em;
+}
+
 .flex {
   display: flex;
 }
@@ -148,6 +152,14 @@ H2, H3 {
   opacity: 0.3;
 }
 
+.Score {
+  zoom: 90%;
+  margin: 4px;
+  margin-left: 8px;
+  border-left: 2px solid silver;
+  padding-left: 8px;
+}
+
 .can-drop {
   cursor: pointer;
 }
@@ -165,3 +177,23 @@ H2, H3 {
   background-color: pink;
 }
 */
+
+.Message-1 {
+  font-weight: bold;
+}
+
+.Message-2 {
+  opacity: 0.8;
+}
+
+.Message-3 {
+  opacity: 0.6;
+}
+
+.Message-4 {
+  opacity: 0.4;
+}
+
+.Message-5 {
+  opacity: 0.2;
+}
