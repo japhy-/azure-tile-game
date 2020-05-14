@@ -1,8 +1,6 @@
 import React, { useState, createContext, useEffect, useContext, useRef } from 'react'
 import * as S from '../constants'
-import { UserPasswordCredential, FunctionCredential } from 'mongodb-stitch-browser-sdk'
-
-const { Stitch, RemoteMongoClient, AnonymousCredential } = require('mongodb-stitch-browser-sdk')
+import { Stitch, RemoteMongoClient, AnonymousCredential, UserPasswordCredential, FunctionCredential } from 'mongodb-stitch-browser-sdk'
 
 const StitchContext = createContext({})
 
