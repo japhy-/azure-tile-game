@@ -16,6 +16,7 @@ const Player = ({player, stub}) => {
         over.set(true)
       }
     })
+    // eslint-disable-next-line
   }, [over.get, player.table, player.wall, player.id, action.get])
 
   return (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import StitchWrapper from './utilities/Stitch'
 import { Storage as StorageWrapper } from './utilities/Storage'
 import Game from './components/Game/'
