@@ -96,12 +96,8 @@ const Lobby = ({logout}) => {
   return (
     <div>
       <div>
-        <button onClick={logout}>Log Out</button>
-      </div>
-      <div>
-        <button onClick={truncateMessages}>Truncate Messages</button>
-      </div>
-      <div>
+        <button onClick={logout}>Log Out</button>{" "}
+        <button onClick={truncateMessages}>Truncate Messages</button>{" "}
         <button onClick={postRandomMessage}>Post Random Message</button>
       </div>
       {allChannels.ready && (<div>
@@ -159,7 +155,7 @@ const Channel = ({active, channel, setActiveChannel}) => {
     <div>
       <div>
         {active ? (
-          <b>Channel #{channel.name}</b>
+          <b>#{channel.name}</b>
         ) : (
           <><a onClick={() => setActiveChannel(channel._id.toString())}>#{channel.name}</a> [{newMsgCount.current} new]</>
         )}
