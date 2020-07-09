@@ -1,7 +1,7 @@
 import React from 'react'
 import Tile from './Tile'
 
-const ChosenTiles = ({tiles=[]}) => {
+export const ChosenTiles = ({tiles=[]}) => {
   return (
     <div className="ChosenTiles" style={{display: 'flex', justifyContent: 'center'}}>
       <span style={{alignSelf: 'center'}}>Hand:</span>

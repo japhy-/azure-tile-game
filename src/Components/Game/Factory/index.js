@@ -1,9 +1,9 @@
 import React, { useEffect, useContext } from 'react'
 import Showroom from './Showroom'
 import Surplus from './Surplus'
-import Tile, { shuffleTiles } from './Tile'
-import { GameContext } from '.'
-import { forN } from '../../utilities/Functions'
+import { shuffleTiles } from '../Tile'
+import { GameContext } from '../'
+import { forN } from '../../../utilities/Functions'
 
 const Factory = () => {
   const { messages, action, players, initialized, factory: { showrooms, surplus, distributing }, tiles, round } = useContext(GameContext)
@@ -62,35 +62,11 @@ const Factory = () => {
         <div>Current Active Player: {players.active.get}</div>
         <div>All Showrooms Empty: {showrooms.areEmpty ? 'Y' : 'N'}</div>
         <div>Surplus Is Empty: {surplus.isEmpty ? 'Y' : 'N'}</div>
-        <RemainingTiles/>
-        <DiscardedTiles/>
       </div>)}
     </div>
   )
 }
 
-
-const RemainingTiles = () => {
-  const { tiles: { bag } } = useContext(GameContext)
-
-  return (
-    <div className="RemainingTiles">
-      <b>Remaining Tiles</b>
-      {bag.get.map(t => <Tile key={`tile-${t.id}`} color={t.color}/>)}
-    </div>
-  )
-}
-
-const DiscardedTiles = () => {
-  const { tiles: { discard } } = useContext(GameContext)
-
-  return (
-    <div className="DiscardedTiles">
-      <b>Discarded Tiles</b>
-      {discard.get.map(t => <Tile key={`tile-${t.id}`} color={t.color}/>)}
-    </div>
-  )
-}
 
 const initializeFactory = (nplayers) => forN(0, nplayers*2).map(id => ({id, tiles: []}))
 

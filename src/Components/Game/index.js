@@ -1,15 +1,19 @@
 import React, { useState, useEffect, createContext, useContext } from 'react'
-import { initializeTiles, scoreTile, TILE_COLORS, TILE_POSITIONS, TILE_ORDER, TILE_PENALTIES, TileStyles } from './Tile'
+import { initializeTiles, scoreTile, TILE_COLORS, TILE_POSITIONS, TILE_ORDER, TILE_PENALTIES } from './Tile'
+import { TileStyles } from "./Tile/TileStyles"
 import { initializePlayers } from './Player'
 import Factory, { initializeFactory } from './Factory'
-import { OtherPlayers, ActivePlayer } from './Player'
+import { ActivePlayer } from './Player/ActivePlayer'
+import { OtherPlayers } from "./Player/OtherPlayers"
+import Messages from './Messages'
+import GameID from './GameID'
 import { ActionContext } from '../../utilities/ActionQueue'
 import { forN } from '../../utilities/Functions'
 
-const GameContext = createContext()
+export const GameContext = createContext()
 const delay = 2000
 
-const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
+export const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
   const addActions = useContext(ActionContext)
 
   const [ players, setPlayers ] = useState([])
@@ -385,25 +389,7 @@ const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
   )
 }
 
-const Messages = () => {
-  const { messages } = useContext(GameContext)
-  return (
-    <div className="Messages flex columns just-centered">
-      {messages.get && messages.get.map((message, i) => (<div key={`message-${i}`} className={`Message Message-${i+1} centered`}>{message}</div>))}
-    </div>
-  )
-}
-
-const GameID = ({nplayers, code}) => {
-  return (
-    <div className="GameID flex just-centered">
-      <h1>{nplayers}-Player Game of Azure (Code: {code.toUpperCase()})</h1>
-    </div>
-  )
-}
-
 export default Game
-export { GameContext }
 
 // import { StitchContext, useStitchWatcher } from '../../utilities/Stitch'
   // const stitch = useContext(StitchContext)

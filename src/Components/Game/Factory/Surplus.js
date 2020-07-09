@@ -1,8 +1,9 @@
 import React, { useContext } from 'react'
-import Tile, { PenaltyTile } from './Tile'
-import { GameContext } from '.'
+import Tile from '../Tile'
+import { PenaltyTile } from "../Tile/PenaltyTile"
+import { GameContext } from '../'
 
-const Surplus = () => {
+export const Surplus = () => {
   const { messages, backup, action, players, factory: { surplus } } = useContext(GameContext)
 
   const takeSurplusTiles = (tile) => {

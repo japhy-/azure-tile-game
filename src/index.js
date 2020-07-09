@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-// import App from './App';
+import App from './App';
 // import App from './App2-Chat';
-import App from './App3-Chat'
+// import App from './App3-Chat'
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(

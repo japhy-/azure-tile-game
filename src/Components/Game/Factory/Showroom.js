@@ -1,8 +1,8 @@
 import React, { useContext } from 'react'
-import Tile from './Tile'
-import { GameContext } from '.'
+import Tile from '../Tile'
+import { GameContext } from '../'
 
-const Showroom = ({showroom}) => {
+export const Showroom = ({showroom}) => {
   const { backup, action, players: { color, active: { chooseTiles} }, factory: { surplus, showrooms } } = useContext(GameContext)
 
   const selectTiles = (tile) => {
