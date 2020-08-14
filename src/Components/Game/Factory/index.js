@@ -5,7 +5,7 @@ import { shuffleTiles } from '../Tile'
 import { GameContext } from '../'
 import { forN } from '../../../utilities/Functions'
 
-const Factory = () => {
+export const Factory = () => {
   const { messages, action, players, initialized, factory: { showrooms, surplus, distributing }, tiles, round } = useContext(GameContext)
 
   const distributeTiles = () => {
@@ -56,19 +56,11 @@ const Factory = () => {
         {showrooms.get.map(s => <Showroom key={`showroom-${s.id}`} showroom={s}/>)}
       </div>
       <Surplus/>
-      {false && (<div>
-        <div>Game Round {round.get}</div>
-        <div>Current Game State: {action.get}</div>
-        <div>Current Active Player: {players.active.get}</div>
-        <div>All Showrooms Empty: {showrooms.areEmpty ? 'Y' : 'N'}</div>
-        <div>Surplus Is Empty: {surplus.isEmpty ? 'Y' : 'N'}</div>
-      </div>)}
     </div>
   )
 }
 
 
-const initializeFactory = (nplayers) => forN(0, nplayers*2).map(id => ({id, tiles: []}))
+export const initializeFactory = (nplayers) => forN(0, nplayers*2).map(id => ({id, tiles: []}))
 
 export default Factory
-export { initializeFactory }

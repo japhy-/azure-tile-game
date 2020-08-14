@@ -1,5 +1,11 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 
+/**
+ * Component for displaying the game ID.
+ * 
+ * @component
+ */
 const GameID = ({nplayers, code}) => {
   return (
     <div className="GameID flex just-centered">
@@ -8,4 +14,17 @@ const GameID = ({nplayers, code}) => {
   )
 }
 
-export default GameID
+
+GameID.propTypes = {
+  /**
+   * The number of players in the game.
+   */
+  nplayers: PropTypes.number.isRequired,
+
+  /**
+   * The game ID.
+   */
+  code: PropTypes.string.isRequired,
+}
+
+export { GameID as default, x }
