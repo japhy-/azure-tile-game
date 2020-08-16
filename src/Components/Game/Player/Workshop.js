@@ -10,7 +10,7 @@ export const Workshop = () => {
       <div className="flex just-centered">
         <TileTable />
         <Arrows />
-        <Wall />
+        <Wall custom={true}/>
       </div>
     </div>
   );

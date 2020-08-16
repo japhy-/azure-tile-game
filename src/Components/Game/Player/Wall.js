@@ -3,7 +3,7 @@ import { forN } from '../../../utilities/Functions';
 import { PlayerContext } from '.';
 import { WallRow } from "./WallRow";
 
-export const Wall = () => {
+export const Wall = ({custom=false}) => {
   const { wall } = useContext(PlayerContext);
 
   return (
@@ -11,7 +11,7 @@ export const Wall = () => {
       <b className="centered">Wall</b>
       <table>
         <tbody>
-          {forN(5).map(i => <WallRow key={`wallrow-${i}`} row={i} tiles={wall[i]} />
+          {forN(5).map(i => <WallRow key={`wallrow-${i}`} row={i} tiles={wall[i]} custom={custom}/>
           )}
         </tbody>
       </table>

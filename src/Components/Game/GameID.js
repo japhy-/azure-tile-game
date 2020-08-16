@@ -27,4 +27,4 @@ GameID.propTypes = {
   code: PropTypes.string.isRequired,
 }
 
-export { GameID as default, x }
+export default GameID
