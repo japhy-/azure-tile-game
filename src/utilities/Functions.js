@@ -1,7 +1,13 @@
-export const forN = (a, b=undefined, c=undefined) => (
-  (b === undefined && c === undefined) ? [...new Array(a).keys()]
-  : (c === undefined) ? [...new Array(b-a + 1).keys()].map(i => i+a)
-  : [...new Array((b-a)/c + 1).keys()].map(i => c*i+a)
+/**
+ * forN returns an array
+ * @param {number} start
+ * @param {number} end
+ * @param {number?} step
+ */
+export const forN = (start, end=undefined, step=undefined) => (
+  (end === undefined && step === undefined) ? [...new Array(start).keys()]
+  : (step === undefined) ? [...new Array(end-start + 1).keys()].map(i => i+start)
+  : [...new Array((end-start)/step + 1).keys()].map(i => step*i+start)
 )
 
 // forN(5) === [0,1,2,3,4]

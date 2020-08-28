@@ -9,6 +9,7 @@ import Messages from './Messages'
 import GameID from './GameID'
 import { ActionContext } from '../../utilities/ActionQueue'
 import { forN } from '../../utilities/Functions'
+import { Azul } from '../Azul'
 
 export const GameContext = createContext()
 const delay = 2000
@@ -374,6 +375,7 @@ export const Game = ({ host, nplayers, thiscomp, code, screenname}) => {
       <div className={`Game flex columns grow-1 ${action} ${gameover && 'gameover'}`}>
         <TileStyles/>
         <GameID {...{nplayers, code}}/>
+        <Azul nplayers={nplayers}/>
         <div className="flex rows">
           <div className="CurrentPlayer flex columns grow-1">
             <Factory/>

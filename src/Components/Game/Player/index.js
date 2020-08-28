@@ -6,6 +6,7 @@ import { Hand } from './Hand'
 import { Workshop } from './Workshop'
 import { PlayerFloor } from './PlayerFloor'
 import { Score } from './Score'
+import { initializeWall } from './Wall'
 
 export const PlayerContext = createContext()
 
@@ -48,7 +49,7 @@ export const Player = ({player, stub}) => {
 const initializePlayers = (n) => {
   const players = []
   for (let i = 0; i < n; i++) {
-    players.push({id: i, hand: [], score: { thisRound: 0, total: 0 }, table: [[],[],[],[],[]], wall: [[],[],[],[],[]], floor: []})
+    players.push({id: i, hand: [], score: { thisRound: 0, total: 0 }, table: [[],[],[],[],[]], wall: initializeWall(), floor: []})
   }
   return players
 }
