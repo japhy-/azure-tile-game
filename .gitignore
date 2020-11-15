@@ -13,6 +13,7 @@
 
 # misc
 /docs
+/old
 /.cache
 .DS_Store
 .env.local
